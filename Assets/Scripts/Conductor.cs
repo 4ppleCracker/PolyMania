@@ -9,9 +9,8 @@ public class Conductor : SingletonBehaviour<Conductor> {
     public AudioClip Song;
     public AudioSource Player;
 
-    public float Seconds => (float)Player.timeSamples / Song.frequency;
-    public int Position => Player.timeSamples;
-    public int Length => Song.samples;
+    public Time Position => new Time((float)Player.timeSamples / Song.frequency);
+    public Time Length => new Time((float)Song.samples / Song.frequency);
 
     public bool SongLoaded => Song != null;
 
@@ -26,19 +25,5 @@ public class Conductor : SingletonBehaviour<Conductor> {
     void Start () {
         // Get the components
         Player = GetComponent<AudioSource>();
-
-        Play();
 	}
-
-	// Update is called once per frame
-	void Update () {
-        if (Beatmap.CurrentlyLoaded.AnyNotesLeft)
-        {
-            Note note;
-            if (Position >= (note = Beatmap.CurrentlyLoaded.Notes.Peek()).time)
-            {
-                Debug.Log(note.slice);
-            }
-        }
-    }
 }

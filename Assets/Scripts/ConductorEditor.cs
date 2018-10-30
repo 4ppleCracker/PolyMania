@@ -25,11 +25,10 @@ public class ConductorEditor : Editor<Conductor>
         {
             if (target.SongLoaded)
             {
-                EditorGUILayout.LabelField("Song Length: ", target.Length.ToString());
+                EditorGUILayout.LabelField("  Song Length: ", target.Length.ToString());
                 if (Application.isPlaying)
                 {
-                    EditorGUILayout.LabelField("Song Position: ", target.Position.ToString());
-                    EditorGUILayout.LabelField("Song Time: ", target.Seconds.ToString());
+                    EditorGUILayout.LabelField("  Song Position: ", target.Position.ToString());
                 }
             }
         }

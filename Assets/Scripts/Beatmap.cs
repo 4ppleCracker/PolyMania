@@ -9,7 +9,7 @@ public class Beatmap
     {
         Notes = new Queue<Note>(new Note[] 
         {
-            new Note(100000, 1)
+            new Note(4, 1)
         })
     };
 }
