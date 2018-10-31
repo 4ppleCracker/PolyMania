@@ -6,6 +6,7 @@ public class ConductorEditor : Editor<Conductor>
 {
     SerializedProperty songProperty;
     bool showDebug = false;
+    bool showNotes = false;
 
     public void OnEnable()
     {
@@ -29,6 +30,17 @@ public class ConductorEditor : Editor<Conductor>
                 if (Application.isPlaying)
                 {
                     EditorGUILayout.LabelField("  Song Position: ", target.Position.ToString());
+                }
+            }
+            if(Beatmap.CurrentlyLoaded != null)
+            {
+                showNotes = EditorGUILayout.Foldout(showNotes, "  Notes");
+                if(showDebug)
+                {
+                    foreach(Note note in Beatmap.CurrentlyLoaded.Notes)
+                    {
+                        EditorGUILayout.LabelField("    " + note.ToString());
+                    }
                 }
             }
         }

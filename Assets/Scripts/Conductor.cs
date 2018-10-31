@@ -9,8 +9,8 @@ public class Conductor : SingletonBehaviour<Conductor> {
     public AudioClip Song;
     public AudioSource Player;
 
-    public Time Position => new Time((float)Player.timeSamples / Song.frequency);
-    public Time Length => new Time((float)Song.samples / Song.frequency);
+    public Time Position => new Time(sec: (float)Player.timeSamples / Song.frequency);
+    public Time Length => new Time(sec: (float)Song.samples / Song.frequency);
 
     public bool SongLoaded => Song != null;
 
@@ -19,6 +19,13 @@ public class Conductor : SingletonBehaviour<Conductor> {
         Player.Stop();
         Player.clip = Song;
         Player.Play();
+    }
+
+    /// <param name="beatType">1 = whole, 2 = half, 4 = quarter, etc</param>
+    public static Time BeatsToTime(int beatNum, float bpm, int beatType)
+    {
+        float bps = bpm / 60;
+        return new Time(sec: beatNum / bps * 4 / beatType);
     }
 
     // Use this for initialization

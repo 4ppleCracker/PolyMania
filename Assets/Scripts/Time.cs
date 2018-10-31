@@ -2,24 +2,32 @@
 
 public struct Time : IComparable<Time>, IEquatable<Time>
 {
-    public float Ms => Sec * 1000;
-    public float Sec;
+    public int Ms;
+    public float Sec => Ms / 1000;
 
+    public Time(int ms)
+    {
+        Ms = ms;
+    }
     public Time(float sec)
     {
-        Sec = sec;
+        Ms = (int)(sec * 1000);
     }
 
-    public int CompareTo(Time obj) => Sec.CompareTo(obj.Sec);
-    public bool Equals(Time other) => Sec == other.Sec;
-    public override int GetHashCode() => 2073418786 + Sec.GetHashCode();
+    public int CompareTo(Time obj) => Ms.CompareTo(obj.Ms);
+    public bool Equals(Time other) => Ms == other.Ms;
+    public override int GetHashCode() => 2073418786 + Ms.GetHashCode();
     public override bool Equals(object obj) => obj is Time && Equals((Time)obj);
     public override string ToString() => Sec + " seconds";
-    public static implicit operator Time(int sec) => new Time(sec);
-    public static bool operator >(Time me, Time other) => me.Sec > other.Sec;
-    public static bool operator <(Time me, Time other) => me.Sec < other.Sec;
-    public static bool operator ==(Time me, Time other) => me.Sec == other.Sec;
-    public static bool operator !=(Time me, Time other) => me.Sec != other.Sec;
-    public static bool operator >=(Time me, Time other) => me.Sec >= other.Sec;
-    public static bool operator <=(Time me, Time other) => me.Sec <= other.Sec;
+    public static implicit operator Time(float sec) => new Time(sec);
+    public static implicit operator Time(int ms) => new Time(ms);
+    public static bool operator >(Time me, Time other) => me.Ms > other.Ms;
+    public static bool operator <(Time me, Time other) => me.Ms < other.Ms;
+    public static bool operator ==(Time me, Time other) => me.Ms == other.Ms;
+    public static bool operator !=(Time me, Time other) => me.Ms != other.Ms;
+    public static bool operator >=(Time me, Time other) => me.Ms >= other.Ms;
+    public static bool operator <=(Time me, Time other) => me.Ms <= other.Ms;
+    public static Time operator +(Time me, Time other) => me.Ms + other.Ms;
+    public static Time operator -(Time me, Time other) => me.Ms - other.Ms;
+    public static Time operator /(Time me, Time other) => me.Ms / other.Ms;
 }
