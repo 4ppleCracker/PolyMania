@@ -42,9 +42,9 @@ public class Beatmap
             Notes = new List<Note>
             {
                 new Note(time: new Time(ms: 2062), slice: 3),
-                new Note(time: 2062 + Conductor.BeatsToTime(1, 120, 4), slice: 3),
-                new Note(time: 2062 + Conductor.BeatsToTime(2, 120, 4), slice: 3),
-                new Note(time: 2062 + Conductor.BeatsToTime(3, 120, 4), slice: 3),
+                new Note(time: new Time(ms: 2062) + Conductor.BeatsToTime(1, 120, 4), slice: 3),
+                new Note(time: new Time(ms: 2062) + Conductor.BeatsToTime(2, 120, 4), slice: 3),
+                new Note(time: new Time(ms: 2062) + Conductor.BeatsToTime(3, 120, 4), slice: 3),
             }
         });
     }

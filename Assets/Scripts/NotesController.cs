@@ -5,7 +5,7 @@ using UnityEngine;
 public class NotesController : SingletonBehaviour<NotesController> {
 
     public static float AllowedTimeToClick => 4000 / Beatmap.CurrentlyLoaded.AccMod;
-    public static float TimeToMiss => 0;//4000 / Beatmap.CurrentlyLoaded.AccMod;
+    public static float TimeToMiss => 2000 / Beatmap.CurrentlyLoaded.AccMod;
 
     // Use this for initialization
     void Start () {
@@ -20,15 +20,15 @@ public class NotesController : SingletonBehaviour<NotesController> {
             if (Conductor.Instance.Position >= note.time - AllowedTimeToClick)
             {
                 //Calculate accuracy for note
-                int accuracy = (int)(note.TimeToClick.Ms * Beatmap.CurrentlyLoaded.AccMod);
+                int accuracy = (int)(note.TimeToClick.Ms * (Beatmap.CurrentlyLoaded.AccMod / 10));
 
                 note.clicked = true;
-                note.accuracy = accuracy;
+                note.msAccuracy = accuracy;
 
                 // Update the note in the list
                 Beatmap.CurrentlyLoaded.Notes[Beatmap.CurrentlyLoaded.PlayedNoteCount] = note;
 
-                Debug.Log(accuracy);
+                Debug.Log(note.Accuracy);
 
                 Beatmap.CurrentlyLoaded.PlayedNoteCount++;
             }
