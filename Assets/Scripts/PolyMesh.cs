@@ -88,10 +88,22 @@ public class PolyMesh : SingletonBehaviour<PolyMesh>
             normals[i] = -Vector3.forward;
         }
 
+        Vector2[] uvs = new Vector2[]
+        {
+            new Vector2(0,0),
+            new Vector2(1,0),
+            new Vector2(0,0),
+            new Vector2(1,0),
+            new Vector2(1,1), //<-- Triangle will be green
+            new Vector2(1,0),
+            new Vector2(0.5f, 0.5f),
+        };
+
         //initialise
         mesh.vertices = verticies;
         mesh.triangles = triangles;
         mesh.normals = normals;
+        mesh.uv = uvs;
         mesh.name = n + " sided polygon";
     }
 }
