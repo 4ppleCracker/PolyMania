@@ -13,6 +13,8 @@ public class ConductorEditor : Editor<Conductor>
         songProperty = serializedObject.FindProperty("Song");
     }
 
+    public override bool RequiresConstantRepaint() => true;
+
     public override void OnInspectorGUI()
     {
         serializedObject.Update();
@@ -24,6 +26,7 @@ public class ConductorEditor : Editor<Conductor>
         showDebug = EditorGUILayout.Foldout(showDebug, "Debug Info");
         if(showDebug)
         {
+            EditorGUILayout.LabelField("  Playing: ", target.Playing.ToString());
             if (target.SongLoaded)
             {
                 EditorGUILayout.LabelField("  Song Length: ", target.Length.ToString());
@@ -46,7 +49,5 @@ public class ConductorEditor : Editor<Conductor>
         }
 
         serializedObject.ApplyModifiedProperties();
-
-        Repaint();
     }
 }

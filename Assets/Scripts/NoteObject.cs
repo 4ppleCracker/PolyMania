@@ -13,9 +13,9 @@ public class NoteObject : MonoBehaviour {
 
     public float GetDegrees()
     {
-        float degrees = 360 * (float)(note.slice + 1) / Beatmap.CurrentlyLoaded.SliceCount;
+        float degrees = 360 * (float)(Beatmap.CurrentlyLoaded.SliceCount - note.slice) / Beatmap.CurrentlyLoaded.SliceCount;
         float correctionDegrees = (360 * 1f / Beatmap.CurrentlyLoaded.SliceCount) / 2;
-        float extraDegrees = 90;
+        float extraDegrees = 180;
         degrees -= correctionDegrees;
         degrees -= extraDegrees;
         return degrees;

@@ -14,11 +14,22 @@ public class Conductor : SingletonBehaviour<Conductor> {
 
     public bool SongLoaded => Song != null;
 
+    public bool Playing = false;
+
     public void Play()
     {
         Player.Stop();
         Player.clip = Song;
         Player.Play();
+        Playing = true;
+    }
+
+    private void Update()
+    {
+        if (Position >= Length)
+        {
+            Playing = false;
+        }
     }
 
     /// <param name="beatType">1 = whole, 2 = half, 4 = quarter, etc</param>

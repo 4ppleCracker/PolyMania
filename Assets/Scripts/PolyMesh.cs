@@ -1,14 +1,55 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class PolyMesh : SingletonBehaviour<PolyMesh>
 {
-    public int Count { get; private set; } = 8;
+    public int Count { get; private set; } = 6;
     public float Radius { get; private set; } = 3.5f;
 
     public const int MINIMUM_COUNT = 3;
+
+    public Vector2[] SelectedTriangleUV => new Vector2[]
+    {
+        new Vector2(0, 0),
+        new Vector2(0, 1),
+        new Vector2(1, 0),
+    };
+    public Vector2[] NonSelectedTriangleUV => new Vector2[]
+    {
+        new Vector2(1, 1),
+        new Vector2(0, 1),
+        new Vector2(1, 0),
+    };
+
+    private MeshFilter m_meshFilter;
+    public MeshFilter meshFilter {
+        get {
+            if (m_meshFilter == null)
+                return m_meshFilter = GetComponent<MeshFilter>();
+            return m_meshFilter;
+        }
+    }
+    private MeshRenderer m_meshRenderer;
+    public MeshRenderer meshRenderer {
+        get {
+            if (m_meshRenderer == null)
+                return m_meshRenderer = GetComponent<MeshRenderer>();
+            return m_meshRenderer;
+        }
+    }
+
+    private void Start()
+    {
+        Skin.CurrentlyLoadedSkin.Apply();
+    }
+
+    public void UpdateMesh()
+    {
+        Generate(Radius, Count);
+    }
 
     public void Generate(float radius, int n)
     {
@@ -18,28 +59,27 @@ public class PolyMesh : SingletonBehaviour<PolyMesh>
         Radius = radius;
         Count = n;
 
-        MeshFilter mf = GetComponent<MeshFilter>();
         Mesh mesh = new Mesh();
-        mf.mesh = mesh;
+        meshFilter.mesh = mesh;
 
         //verticies
-        Vector3[] verticies = new Vector3[n];
+        Vector3[] verticies = new Vector3[n+1];
         for (int i = 0; i < n; i++)
         {
             float x = radius * Mathf.Sin((2 * Mathf.PI * i) / n);
             float y = radius * Mathf.Cos((2 * Mathf.PI * i) / n);
             verticies[i] = new Vector3(x, y, 0f);
         }
+        verticies[n] = new Vector3(0, 0, 0);
 
         //triangles
-        List<int> trianglesList = new List<int> { };
-        for (int i = 0; i < (n - 2); i++)
+        int[] triangles = new int[(n) * 3];
+        for (int i = 0; i < n; i++)
         {
-            trianglesList.Add(0);
-            trianglesList.Add(i + 1);
-            trianglesList.Add(i + 2);
+            triangles[i * 3] = n;
+            triangles[(i * 3) + 1] = i;
+            triangles[(i * 3) + 2] = (i + 1) % n;
         }
-        int[] triangles = trianglesList.ToArray();
 
         //normals
         Vector3[] normals = new Vector3[verticies.Length];
@@ -52,6 +92,6 @@ public class PolyMesh : SingletonBehaviour<PolyMesh>
         mesh.vertices = verticies;
         mesh.triangles = triangles;
         mesh.normals = normals;
-        mesh.name = "PolyMesh";
+        mesh.name = n + " sided polygon";
     }
 }

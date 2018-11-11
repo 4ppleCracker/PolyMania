@@ -16,40 +16,51 @@ public class NotesController : SingletonBehaviour<NotesController> {
 	// Update is called once per frame
 	void Update ()
     {
-        if (Beatmap.CurrentlyLoaded.AnyNotesLeft && Input.GetKeyDown(KeyCode.Space))
+        if (Conductor.Instance.Playing)
         {
-            Note note = Beatmap.CurrentlyLoaded.Notes[Beatmap.CurrentlyLoaded.PlayedNoteCount];
-            Debug.Log(note.TimeToClick.Ms);
-            if (Conductor.Instance.Position >= note.time - AllowedTimeToClick)
+            if (Beatmap.CurrentlyLoaded.AnyNotesLeft && Input.GetKeyDown(KeyCode.Space))
             {
-                //Calculate accuracy for note
-                int accuracy = (int)(note.TimeToClick.Ms * (Beatmap.CurrentlyLoaded.AccMod / 10));
+                for (int i = Beatmap.CurrentlyLoaded.PlayedNoteCount; i < Beatmap.CurrentlyLoaded.Notes.Count; i++)
+                {
+                    if (Beatmap.CurrentlyLoaded.Notes[i].TimeToClick.Ms <= -AllowedTimeToClick)
+                        continue;
+                    if (Beatmap.CurrentlyLoaded.Notes[i].TimeToClick.Ms >= AllowedTimeToClick)
+                        break;
 
-                note.clicked = true;
-                note.msAccuracy = accuracy;
+                    Note note = Beatmap.CurrentlyLoaded.Notes[i];
+                    Debug.Log(note.TimeToClick.Ms);
+                    if (Conductor.Instance.Position >= note.time - AllowedTimeToClick && note.slice == AimController.Instance.SelectedSlice)
+                    {
+                        //Calculate accuracy for note
+                        int accuracy = (int)(note.TimeToClick.Ms * (Beatmap.CurrentlyLoaded.AccMod / 10));
 
-                // Update the note in the list
-                Beatmap.CurrentlyLoaded.Notes[Beatmap.CurrentlyLoaded.PlayedNoteCount] = note;
+                        note.clicked = true;
+                        note.msAccuracy = accuracy;
 
-                Debug.Log(note.Accuracy);
+                        // Update the note in the list
+                        Beatmap.CurrentlyLoaded.Notes[Beatmap.CurrentlyLoaded.PlayedNoteCount] = note;
 
-                Beatmap.CurrentlyLoaded.PlayedNoteCount++;
+                        Debug.Log(note.Accuracy);
+
+                        Beatmap.CurrentlyLoaded.PlayedNoteCount++;
+                    }
+                }
             }
-        }
-        for(int i = Beatmap.CurrentlyLoaded.PlayedNoteCount; i < Beatmap.CurrentlyLoaded.Notes.Count; i++)
-        {
-            if (Beatmap.CurrentlyLoaded.Notes[i].TimeToClick.Ms <= -AllowedTimeToClick)
-                continue;
-            if (Beatmap.CurrentlyLoaded.Notes[i].TimeToClick.Ms >= AllowedTimeToClick)
-                break;
-
-            Note note = Beatmap.CurrentlyLoaded.Notes[i];
-            if (!note.clicked && !note.generated)
+            for (int i = Beatmap.CurrentlyLoaded.PlayedNoteCount; i < Beatmap.CurrentlyLoaded.Notes.Count; i++)
             {
-                NoteObject noteObject = Instantiate(Resources.Load<GameObject>("Objects/Note")).GetComponent<NoteObject>();
-                noteObject.noteIndex = i;
-                note.generated = true;
-                Beatmap.CurrentlyLoaded.Notes[i] = note;
+                if (Beatmap.CurrentlyLoaded.Notes[i].TimeToClick.Ms <= -AllowedTimeToClick)
+                    continue;
+                if (Beatmap.CurrentlyLoaded.Notes[i].TimeToClick.Ms >= AllowedTimeToClick)
+                    break;
+
+                Note note = Beatmap.CurrentlyLoaded.Notes[i];
+                if (!note.clicked && !note.generated)
+                {
+                    NoteObject noteObject = Instantiate(Resources.Load<GameObject>("Objects/Note")).GetComponent<NoteObject>();
+                    noteObject.noteIndex = i;
+                    note.generated = true;
+                    Beatmap.CurrentlyLoaded.Notes[i] = note;
+                }
             }
         }
     }
