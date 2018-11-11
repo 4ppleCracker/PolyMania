@@ -6,17 +6,25 @@ using UnityEngine;
 
 public class NoteObject : MonoBehaviour {
 
+    [NonSerialized]
     public int noteIndex;
 
-	// Use this for initialization
-	void Start () {
-		
-	}
-	
-	// Update is called once per frame
-	void Update () {
-        //Get note from beatmap's notes list
-        Note note = Beatmap.CurrentlyLoaded.Notes[noteIndex];
+    public Note note;
+
+    public float GetDegrees()
+    {
+        float degrees = 360 * (float)(note.slice + 1) / Beatmap.CurrentlyLoaded.SliceCount;
+        float correctionDegrees = (360 * 1f / Beatmap.CurrentlyLoaded.SliceCount) / 2;
+        float extraDegrees = 90;
+        degrees -= correctionDegrees;
+        degrees -= extraDegrees;
+        return degrees;
+    }
+
+    // Update is called once per frame
+    void Update ()
+    {
+        note = Beatmap.CurrentlyLoaded.Notes[noteIndex];
 
         if (note.clicked)
             Destroy(gameObject);
@@ -27,12 +35,9 @@ public class NoteObject : MonoBehaviour {
         //Apply speed mod
         //progress = progress / Beatmap.CurrentlyLoaded.SpeedMod + (1 / Beatmap.CurrentlyLoaded.SpeedMod);
 
-        transform.position = new Vector3(progress * PolyMesh.Instance.Radius, 0);
+        transform.position = new Vector3(0, progress * PolyMesh.Instance.Radius);
 
-        //Calculate rotation for slice
-        float degrees = 360 * (float)note.slice / Beatmap.CurrentlyLoaded.SliceCount;
-
-        transform.rotation = Quaternion.Euler(0, 0, degrees);
+        transform.rotation = Quaternion.Euler(0, 0, GetDegrees());
         transform.position = transform.rotation * -transform.position;
 
         //If note's TimeToClick is later than TimeToMiss, kill the note and set missed to true
@@ -43,6 +48,18 @@ public class NoteObject : MonoBehaviour {
             Beatmap.CurrentlyLoaded.Notes[noteIndex] = note;
             Beatmap.CurrentlyLoaded.PlayedNoteCount++;
             EditorApplication.Beep();
+            Debug.Log("Missed " + noteIndex);
         }
 	}
+}
+
+[CustomEditor(typeof(NoteObject))]
+public class NoteObjectEditor : Editor<NoteObject>
+{
+    private void OnSceneGUI()
+    {
+        Handles.Label(target.transform.position + Vector3.up * 1.1f, "Rotation: " + target.GetDegrees());
+        Handles.Label(target.transform.position + Vector3.up * 1.2f, "Slice: " + target.note.slice);
+        Handles.Label(target.transform.position + Vector3.up * 1.3f, "Time to click: " + target.note.TimeToClick);
+    }
 }

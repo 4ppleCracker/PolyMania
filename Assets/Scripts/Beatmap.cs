@@ -1,10 +1,14 @@
 ﻿using System.Collections.Generic;
+using UnityEngine;
 
 public class Beatmap
 {
+    //Metadata
+    public string SongName;
+
     //Data
     public List<Note> Notes;
-    public int PlayedNoteCount = 0;
+    public int PlayedNoteCount;
 
     //Modifiers
     public readonly int SliceCount;
@@ -13,31 +17,39 @@ public class Beatmap
     public int Bpm;
 
     //Accessors
-    public bool AnyNotesLeft => Notes.Count > 0;
+    public bool AnyNotesLeft => PlayedNoteCount <= Notes.Count;
 
     //Loading
     public static Beatmap CurrentlyLoaded { get; private set; }
     public static void Load(Beatmap map)
     {
         CurrentlyLoaded = map;
-        PolyMesh.Instance.Generate(3.5f, map.SliceCount);
+        PolyMesh.Instance.Generate(PolyMesh.Instance.Radius, map.SliceCount);
+
+        Debug.Log($"Loaded song {map.SongName}");
     }
 
     //Required so we can check SliceCount
-    public Beatmap(int sliceCount, float accMod, float speedMod)
+    public Beatmap(int bpm, int sliceCount, float accMod, float speedMod, string songName)
     {
         if (sliceCount < PolyMesh.MINIMUM_COUNT)
             throw new System.Exception("sliceCount parameter must be bigger than " + PolyMesh.MINIMUM_COUNT);
 
+        Bpm = bpm;
         SliceCount = sliceCount;
         AccMod = accMod;
         SpeedMod = speedMod;
+        SongName = songName;
+
+        //Default values
+        PlayedNoteCount = 0;
+        Notes = null;
     }
 
     //Load a dummy map by default
     static Beatmap()
     {
-        Load(new Beatmap(sliceCount: 8, accMod: 8, speedMod: 5)
+        Load(new Beatmap(bpm: 120, sliceCount: PolyMesh.Instance.Count, accMod: 8, speedMod: 5, songName: "120 bpm drum")
         {
             Notes = new List<Note>
             {

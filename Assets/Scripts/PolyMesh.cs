@@ -3,10 +3,10 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class PolyMesh : SingletonBehaviour<PolyMesh> {
-
-    public int Count { get; private set; }
-    public float Radius { get; private set; }
+public class PolyMesh : SingletonBehaviour<PolyMesh>
+{
+    public int Count { get; private set; } = 8;
+    public float Radius { get; private set; } = 3.5f;
 
     public const int MINIMUM_COUNT = 3;
 

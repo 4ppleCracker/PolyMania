@@ -29,7 +29,8 @@ public class Conductor : SingletonBehaviour<Conductor> {
     }
 
     // Use this for initialization
-    void Start () {
+    void Start ()
+    {
         // Get the components
         Player = GetComponent<AudioSource>();
 	}

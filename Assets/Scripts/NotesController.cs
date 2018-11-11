@@ -8,15 +8,18 @@ public class NotesController : SingletonBehaviour<NotesController> {
     public static float TimeToMiss => 2000 / Beatmap.CurrentlyLoaded.AccMod;
 
     // Use this for initialization
-    void Start () {
+    void Start ()
+    {
         Conductor.Instance.Play();
     }
 	
 	// Update is called once per frame
-	void Update () {
+	void Update ()
+    {
         if (Beatmap.CurrentlyLoaded.AnyNotesLeft && Input.GetKeyDown(KeyCode.Space))
         {
             Note note = Beatmap.CurrentlyLoaded.Notes[Beatmap.CurrentlyLoaded.PlayedNoteCount];
+            Debug.Log(note.TimeToClick.Ms);
             if (Conductor.Instance.Position >= note.time - AllowedTimeToClick)
             {
                 //Calculate accuracy for note
@@ -39,6 +42,7 @@ public class NotesController : SingletonBehaviour<NotesController> {
                 continue;
             if (Beatmap.CurrentlyLoaded.Notes[i].TimeToClick.Ms >= AllowedTimeToClick)
                 break;
+
             Note note = Beatmap.CurrentlyLoaded.Notes[i];
             if (!note.clicked && !note.generated)
             {

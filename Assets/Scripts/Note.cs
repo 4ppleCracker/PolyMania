@@ -33,7 +33,7 @@ public struct Note
 
     public override string ToString()
     {
-        return $"Time = {time}, Offset Time = {time} slice = {slice}, clicked = {clicked}, generated = {generated}, missed = {missed}, accuracy = {msAccuracy}";
+        return $"Time = {time}, slice = {slice}, clicked = {clicked}, generated = {generated}, missed = {missed}, accuracy = {msAccuracy}";
     }
 
     public Note(Time time, int slice)
