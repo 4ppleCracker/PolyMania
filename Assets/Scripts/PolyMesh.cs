@@ -51,6 +51,13 @@ public class PolyMesh : SingletonBehaviour<PolyMesh>
         Generate(Radius, Count);
     }
 
+    public Vector3 posForVertices(int i, int n, float radius)
+    {
+        return new Vector3(radius * Mathf.Sin((2 * Mathf.PI * i) / n), radius * Mathf.Cos((2 * Mathf.PI * i) / n), 0f);
+    }
+
+    public Mesh mesh;
+
     public void Generate(float radius, int n)
     {
         if (n < MINIMUM_COUNT)
@@ -59,45 +66,76 @@ public class PolyMesh : SingletonBehaviour<PolyMesh>
         Radius = radius;
         Count = n;
 
-        Mesh mesh = new Mesh();
+        mesh = new Mesh();
         meshFilter.mesh = mesh;
 
-        //verticies
-        Vector3[] verticies = new Vector3[n+1];
+        //Verticies
+        //Double the vertices for texturing individual triangles
+        Vector3[] verticies = new Vector3[n*2+1];
         for (int i = 0; i < n; i++)
         {
-            float x = radius * Mathf.Sin((2 * Mathf.PI * i) / n);
-            float y = radius * Mathf.Cos((2 * Mathf.PI * i) / n);
-            verticies[i] = new Vector3(x, y, 0f);
+            verticies[i] = posForVertices(i, n, radius);
+            verticies[i+n] = posForVertices(i, n, radius);
         }
-        verticies[n] = new Vector3(0, 0, 0);
+        verticies[n*2] = new Vector3(0, 0, 0);
 
-        //triangles
+        //Triangles
+        //For n = 3, (0, 4),(1,5),(2,6),(3,7),(8 is middle)
         int[] triangles = new int[(n) * 3];
         for (int i = 0; i < n; i++)
         {
-            triangles[i * 3] = n;
+            triangles[i * 3] = n*2;
             triangles[(i * 3) + 1] = i;
-            triangles[(i * 3) + 2] = (i + 1) % n;
+            triangles[(i * 3) + 2] = (i + 1) % n + n;
         }
 
-        //normals
+        //Normals
         Vector3[] normals = new Vector3[verticies.Length];
         for (int i = 0; i < verticies.Length; i++)
         {
             normals[i] = -Vector3.forward;
         }
 
+        //UVs
+
+#if DEBUG
+        Vector2[] uvs = new Vector2[verticies.Length];
+        for(int i = 0; i < n; i++)
+        {
+            uvs[i] = new Vector2(0, 0);
+            uvs[i + n] = new Vector2(1, 0);
+        }
+
+        int slice = AimController.Instance.SelectedSlice;
+        uvs[slice] = new Vector2(1, 0);
+        uvs[(slice + 1) % n + n] = new Vector2(1, 1);
+
+        uvs[n*2] = new Vector2(0.5f, 0.5f);
+#else
         Vector2[] uvs = new Vector2[]
         {
-            new Vector2(0,0),
             new Vector2(1,0),
             new Vector2(0,0),
+            new Vector2(0,0),
+            new Vector2(0,0),
+            new Vector2(0,0),
+            new Vector2(0,0),
+
             new Vector2(1,0),
-            new Vector2(1,1), //<-- Triangle will be green
+            new Vector2(1,1),
             new Vector2(1,0),
+            new Vector2(1,0),
+            new Vector2(1,0),
+            new Vector2(1,0),
+
             new Vector2(0.5f, 0.5f),
         };
+#endif
+
+        if(uvs.Length != verticies.Length)
+        {
+            Debug.LogError("uv length is " + uvs.Length + " vertices length is " + verticies.Length);
+        }
 
         //initialise
         mesh.vertices = verticies;

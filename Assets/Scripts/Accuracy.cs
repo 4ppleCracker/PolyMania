@@ -2,7 +2,7 @@
 
 public enum AccuracyType
 {
-    None = 0, Amazing = 20, Excellent = 50, Good = 70, Okay = 80, Bad = 100, Horrendous = int.MaxValue
+    None = 0, Amazing = 20, Excellent = 40, Good = 80, Okay = 110, Bad = 160, Horrendous = int.MaxValue
 }
 
 public struct Accuracy {

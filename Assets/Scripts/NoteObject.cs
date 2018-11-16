@@ -15,9 +15,7 @@ public class NoteObject : MonoBehaviour {
     {
         float degrees = 360 * (float)(Beatmap.CurrentlyLoaded.SliceCount - note.slice) / Beatmap.CurrentlyLoaded.SliceCount;
         float correctionDegrees = (360 * 1f / Beatmap.CurrentlyLoaded.SliceCount) / 2;
-        float extraDegrees = 180;
         degrees -= correctionDegrees;
-        degrees -= extraDegrees;
         return degrees;
     }
 
@@ -29,16 +27,21 @@ public class NoteObject : MonoBehaviour {
         if (note.clicked)
             Destroy(gameObject);
 
+        int start = (int)(note.time.Ms - NotesController.AllowedTimeToClick);
+        int end = note.time.Ms;
+        int timeframe = end - start;
+
+        int pos = Conductor.Instance.Position.Ms - start;
+
         //Calculate progress to position where user should click
-        float progress = 1 - note.TimeToClick.Ms / NotesController.AllowedTimeToClick;
+        float progress = (float)pos / timeframe;
 
-        //Apply speed mod
-        //progress = progress / Beatmap.CurrentlyLoaded.SpeedMod + (1 / Beatmap.CurrentlyLoaded.SpeedMod);
+        Vector2 target = ((PolyMesh.Instance.mesh.vertices[note.slice] + PolyMesh.Instance.mesh.vertices[(note.slice + 1) % Beatmap.CurrentlyLoaded.SliceCount]) / 2);
 
-        transform.position = new Vector3(0, progress * PolyMesh.Instance.Radius);
+        Vector2 screenCoords = progress * target;//new Vector2(0, progress * PolyMesh.Instance.Radius);
+        transform.position = screenCoords;
 
         transform.rotation = Quaternion.Euler(0, 0, GetDegrees());
-        transform.position = transform.rotation * -transform.position;
 
         //If note's TimeToClick is later than TimeToMiss, kill the note and set missed to true
         if (-note.TimeToClick.Ms >= NotesController.TimeToMiss)
@@ -47,7 +50,6 @@ public class NoteObject : MonoBehaviour {
             note.missed = true;
             Beatmap.CurrentlyLoaded.Notes[noteIndex] = note;
             Beatmap.CurrentlyLoaded.PlayedNoteCount++;
-            EditorApplication.Beep();
             Debug.Log("Missed " + noteIndex);
         }
 	}
@@ -61,5 +63,6 @@ public class NoteObjectEditor : Editor<NoteObject>
         Handles.Label(target.transform.position + Vector3.up * 1.1f, "Rotation: " + target.GetDegrees());
         Handles.Label(target.transform.position + Vector3.up * 1.2f, "Slice: " + target.note.slice);
         Handles.Label(target.transform.position + Vector3.up * 1.3f, "Time to click: " + target.note.TimeToClick);
+        Handles.Label(target.transform.position + Vector3.up * 1.4f, "Time: " + target.note.time);
     }
 }

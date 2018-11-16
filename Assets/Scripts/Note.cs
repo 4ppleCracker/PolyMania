@@ -8,13 +8,13 @@ public struct Note
     public bool clicked;
     public bool generated;
     public bool missed;
-    public int msAccuracy;
+    public int trueAccuracy;
     private Accuracy m_accuracy;
     public Accuracy Accuracy {
         get {
             if (m_accuracy.type != AccuracyType.None)
                 return m_accuracy;
-            int acc = Math.Abs(msAccuracy);
+            int acc = Math.Abs(trueAccuracy);
             AccuracyType type = AccuracyType.Horrendous;
             foreach (AccuracyType val in Enum.GetValues(typeof(AccuracyType)))
             {
@@ -24,7 +24,7 @@ public struct Note
                     break;
                 }
             }
-            return m_accuracy = new Accuracy(type, acc > 0);
+            return m_accuracy = new Accuracy(type, trueAccuracy < 0);
         }
     }
 
@@ -33,7 +33,7 @@ public struct Note
 
     public override string ToString()
     {
-        return $"Time = {time}, slice = {slice}, clicked = {clicked}, generated = {generated}, missed = {missed}, accuracy = {msAccuracy}";
+        return $"Time = {time}, slice = {slice}, clicked = {clicked}, generated = {generated}, missed = {missed}, accuracy = {trueAccuracy}";
     }
 
     public Note(Time time, int slice)
@@ -43,7 +43,7 @@ public struct Note
         clicked = false;
         generated = false;
         missed = false;
-        msAccuracy = -1;
+        trueAccuracy = -1;
         m_accuracy = new Accuracy(AccuracyType.None, false);
     }
 }

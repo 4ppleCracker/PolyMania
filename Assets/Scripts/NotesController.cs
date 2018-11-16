@@ -28,19 +28,19 @@ public class NotesController : SingletonBehaviour<NotesController> {
                         break;
 
                     Note note = Beatmap.CurrentlyLoaded.Notes[i];
-                    Debug.Log(note.TimeToClick.Ms);
+
                     if (Conductor.Instance.Position >= note.time - AllowedTimeToClick && note.slice == AimController.Instance.SelectedSlice)
                     {
                         //Calculate accuracy for note
-                        int accuracy = (int)(note.TimeToClick.Ms * (Beatmap.CurrentlyLoaded.AccMod / 10));
+                        int accuracy = (int)(note.TimeToClick.Ms * (Beatmap.CurrentlyLoaded.AccMod / 15));
 
                         note.clicked = true;
-                        note.msAccuracy = accuracy;
+                        note.trueAccuracy = accuracy;
 
                         // Update the note in the list
                         Beatmap.CurrentlyLoaded.Notes[Beatmap.CurrentlyLoaded.PlayedNoteCount] = note;
 
-                        Debug.Log(note.Accuracy);
+                        Debug.Log(note.Accuracy + " " + accuracy + " ms");
 
                         Beatmap.CurrentlyLoaded.PlayedNoteCount++;
                     }
