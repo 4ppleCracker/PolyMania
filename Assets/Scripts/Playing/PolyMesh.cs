@@ -80,12 +80,12 @@ public class PolyMesh : SingletonBehaviour<PolyMesh>
         verticies[n*2] = new Vector3(0, 0, 0);
 
         //Triangles
-        //For n = 3, (0, 4),(1,5),(2,6),(3,7),(8 is middle)
         int[] triangles = new int[(n) * 3];
         for (int i = 0; i < n; i++)
         {
             triangles[i * 3] = n*2;
             triangles[(i * 3) + 1] = i;
+            //Modulos so last vertice is actually the first vertice to connect the last triangle to the first
             triangles[(i * 3) + 2] = (i + 1) % n + n;
         }
 
@@ -97,8 +97,6 @@ public class PolyMesh : SingletonBehaviour<PolyMesh>
         }
 
         //UVs
-
-#if DEBUG
         Vector2[] uvs = new Vector2[verticies.Length];
         for(int i = 0; i < n; i++)
         {
@@ -106,31 +104,12 @@ public class PolyMesh : SingletonBehaviour<PolyMesh>
             uvs[i + n] = new Vector2(1, 0);
         }
 
+        //Apply differently textured tringle for selected slice
         int slice = AimController.Instance.SelectedSlice;
         uvs[slice] = new Vector2(1, 0);
         uvs[(slice + 1) % n + n] = new Vector2(1, 1);
 
         uvs[n*2] = new Vector2(0.5f, 0.5f);
-#else
-        Vector2[] uvs = new Vector2[]
-        {
-            new Vector2(1,0),
-            new Vector2(0,0),
-            new Vector2(0,0),
-            new Vector2(0,0),
-            new Vector2(0,0),
-            new Vector2(0,0),
-
-            new Vector2(1,0),
-            new Vector2(1,1),
-            new Vector2(1,0),
-            new Vector2(1,0),
-            new Vector2(1,0),
-            new Vector2(1,0),
-
-            new Vector2(0.5f, 0.5f),
-        };
-#endif
 
         if(uvs.Length != verticies.Length)
         {

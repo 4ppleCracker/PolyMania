@@ -47,10 +47,13 @@ public class NoteObject : MonoBehaviour {
         if (-note.TimeToClick.Ms >= NotesController.TimeToMiss)
         {
             Destroy(gameObject);
+
             note.Accuracy = new Accuracy(AccuracyType.Miss, true);
+
             Beatmap.CurrentlyLoaded.Notes[noteIndex] = note;
             Beatmap.CurrentlyLoaded.PlayedNoteCount++;
-            Debug.Log("Missed " + noteIndex);
+
+            NotesController.Instance.UpdateAccuracyText();
         }
 	}
 }

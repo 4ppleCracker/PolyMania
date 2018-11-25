@@ -8,9 +8,10 @@ public class ResultSceneManager : SingletonBehaviour<ResultSceneManager> {
 
     Result result;
 
+    TextMeshProUGUI accuracyListText;
     TextMeshProUGUI accuracyText;
 
-    public void SetAccuracies(string format)
+    public void SetAccuracyList(string format)
     {
         AccuracyType[] accArray = (AccuracyType[])Enum.GetValues(typeof(AccuracyType));
         object[] counts = new object[accArray.Length];
@@ -18,14 +19,19 @@ public class ResultSceneManager : SingletonBehaviour<ResultSceneManager> {
         {
             counts[i] = result.GetCountForAccuracy(accArray[i]);
         }
-        accuracyText.text = string.Format(format, counts);
+        accuracyListText.text = string.Format(format, counts);
     }
 
     public void Load(Result result)
     {
         this.result = result;
+
+        accuracyListText = GameObject.Find("AccuracyListText").GetComponent<TextMeshProUGUI>();
         accuracyText = GameObject.Find("AccuracyText").GetComponent<TextMeshProUGUI>();
-        string format = accuracyText.text;
-        SetAccuracies(format);
+
+        string format = accuracyListText.text;
+        SetAccuracyList(format);
+
+        accuracyText.text = result.totalAccuracy + "%";
     }
 }

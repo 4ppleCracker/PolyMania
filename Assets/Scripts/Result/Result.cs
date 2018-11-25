@@ -20,6 +20,7 @@ public struct ResultNote
 public class Result
 {
     public ResultNote[] resultNotes;
+    public int totalAccuracy;
 
     public int GetCountForAccuracy(AccuracyType type)
     {

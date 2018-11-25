@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -9,12 +10,32 @@ public class NotesController : SingletonBehaviour<NotesController> {
     public static float TimeToMiss => 2000 / Beatmap.CurrentlyLoaded.AccMod;
 
     Result result;
+    TextMeshProUGUI AccuracyText;
+
+    int CurrentAccuracy()
+    {
+        if (Beatmap.CurrentlyLoaded.PlayedNoteCount == 0)
+            return 100;
+        int totalAcc = 0;
+        for(int i = 0; i < Beatmap.CurrentlyLoaded.PlayedNoteCount; i++)
+        {
+            totalAcc += Beatmap.CurrentlyLoaded.Notes[i].Accuracy.ToPercent();
+        }
+        return totalAcc / Beatmap.CurrentlyLoaded.PlayedNoteCount;
+    }
+
+    public void UpdateAccuracyText()
+    {
+        AccuracyText.text = CurrentAccuracy() + "%";
+    }
 
     // Use this for initialization
     void Start ()
     {
+        AccuracyText = GameObject.Find("AccuracyText").GetComponent<TextMeshProUGUI>();
         Conductor.Instance.Play();
         result = new Result();
+        UpdateAccuracyText();
     }
 	
 	// Update is called once per frame
@@ -45,10 +66,9 @@ public class NotesController : SingletonBehaviour<NotesController> {
 
                             // Update the note in the list
                             Beatmap.CurrentlyLoaded.Notes[Beatmap.CurrentlyLoaded.PlayedNoteCount] = note;
-
-                            Debug.Log(note.Accuracy + " " + accuracy + " ms");
-
                             Beatmap.CurrentlyLoaded.PlayedNoteCount++;
+
+                            UpdateAccuracyText();
                         }
                     }
                 }
@@ -74,8 +94,6 @@ public class NotesController : SingletonBehaviour<NotesController> {
         {
             SceneManager.LoadSceneAsync("ResultsScene", LoadSceneMode.Additive).completed += delegate
             {
-                SceneManager.UnloadSceneAsync("PlayingScene");
-
                 Scene resultScene = SceneManager.GetSceneByName("ResultsScene");
 
                 ResultSceneManager resultSceneManager = null;
@@ -94,7 +112,10 @@ public class NotesController : SingletonBehaviour<NotesController> {
                     throw new System.Exception("No scene manager found");
                 }
 
-                resultSceneManager.Load(result);
+                SceneManager.UnloadSceneAsync("PlayingScene").completed += delegate
+                {
+                    resultSceneManager.Load(result);
+                };
             };
 
             result.resultNotes = new ResultNote[Beatmap.CurrentlyLoaded.Notes.Count];
@@ -103,6 +124,7 @@ public class NotesController : SingletonBehaviour<NotesController> {
                 Note note = Beatmap.CurrentlyLoaded.Notes[i];
                 result.resultNotes[i] = (ResultNote)note;
             }
+            result.totalAccuracy = CurrentAccuracy();
 
             Destroy(this);
         }
