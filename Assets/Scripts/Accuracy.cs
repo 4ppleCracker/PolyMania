@@ -2,10 +2,10 @@
 
 public enum AccuracyType
 {
-    None = 0, Amazing = 20, Excellent = 40, Good = 80, Okay = 110, Bad = 160, Horrendous = int.MaxValue
+    Amazing = 20, Excellent = 40, Good = 80, Okay = 110, Bad = 160, Horrendous = int.MaxValue, Miss = 0
 }
 
-public struct Accuracy {
+public class Accuracy {
     public AccuracyType type;
     public bool tooLate;
 
@@ -13,6 +13,34 @@ public struct Accuracy {
     {
         this.type = type;
         this.tooLate = tooLate;
+    }
+
+    /// <returns>value of 0-100 depending on the accuracy</returns>
+    public int ToPercent()
+    {
+        int percent = 0;
+        switch(type)
+        {
+            case AccuracyType.Amazing:
+                percent = 100;
+                break;
+            case AccuracyType.Excellent:
+                percent = 90;
+                break;
+            case AccuracyType.Good:
+                percent = 70;
+                break;
+            case AccuracyType.Okay:
+                percent = 50;
+                break;
+            case AccuracyType.Bad:
+                percent = 30;
+                break;
+            default:
+                percent = 0;
+                break;
+        }
+        return percent;
     }
 
     public override string ToString()

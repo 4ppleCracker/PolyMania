@@ -17,7 +17,7 @@ public class Beatmap
     public int Bpm;
 
     //Accessors
-    public bool AnyNotesLeft => PlayedNoteCount <= Notes.Count;
+    public bool AnyNotesLeft => PlayedNoteCount < Notes.Count;
 
     //Loading
     public static Beatmap CurrentlyLoaded { get; private set; }

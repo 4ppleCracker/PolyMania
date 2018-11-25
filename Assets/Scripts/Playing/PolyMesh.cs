@@ -51,7 +51,7 @@ public class PolyMesh : SingletonBehaviour<PolyMesh>
         Generate(Radius, Count);
     }
 
-    public Vector3 posForVertices(int i, int n, float radius)
+    public Vector3 PosForVertices(int i, int n, float radius)
     {
         return new Vector3(radius * Mathf.Sin((2 * Mathf.PI * i) / n), radius * Mathf.Cos((2 * Mathf.PI * i) / n), 0f);
     }
@@ -74,8 +74,8 @@ public class PolyMesh : SingletonBehaviour<PolyMesh>
         Vector3[] verticies = new Vector3[n*2+1];
         for (int i = 0; i < n; i++)
         {
-            verticies[i] = posForVertices(i, n, radius);
-            verticies[i+n] = posForVertices(i, n, radius);
+            verticies[i] = PosForVertices(i, n, radius);
+            verticies[i+n] = PosForVertices(i, n, radius);
         }
         verticies[n*2] = new Vector3(0, 0, 0);
 
