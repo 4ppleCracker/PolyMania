@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
@@ -11,6 +12,37 @@ public class NotesController : SingletonBehaviour<NotesController> {
 
     Result result;
     TextMeshProUGUI AccuracyText;
+    TextMeshProUGUI ScoreText;
+    TextMeshProUGUI ComboText;
+
+    [SerializeField]
+    private long m_score;
+    public long Score {
+        get {
+            return m_score;
+        }
+        set {
+            m_score = value;
+            UpdateScoreText();
+        }
+    }
+    [SerializeField]
+    private int m_combo;
+    public int Combo {
+        get {
+            return m_combo;
+        }
+        set {
+            m_combo = value;
+            UpdateComboText();
+        }
+    }
+    public int highestCombo;
+
+    int GetScoreForNote(int combo, Accuracy acc)
+    {
+        return combo * acc.ToPercent();
+    }
 
     int CurrentAccuracy()
     {
@@ -28,14 +60,27 @@ public class NotesController : SingletonBehaviour<NotesController> {
     {
         AccuracyText.text = CurrentAccuracy() + "%";
     }
+    public void UpdateComboText()
+    {
+        ComboText.text = Combo + "x";
+        Debug.Log("combo");
+    }
+    public void UpdateScoreText()
+    {
+        ScoreText.text = Score.ToString("#,##0");
+    }
 
     // Use this for initialization
     void Start ()
     {
         AccuracyText = GameObject.Find("AccuracyText").GetComponent<TextMeshProUGUI>();
+        ComboText = GameObject.Find("ComboText").GetComponent<TextMeshProUGUI>();
+        ScoreText = GameObject.Find("ScoreText").GetComponent<TextMeshProUGUI>();
         Conductor.Instance.Play();
         result = new Result();
         UpdateAccuracyText();
+        UpdateComboText();
+        UpdateScoreText();
     }
 	
 	// Update is called once per frame
@@ -68,6 +113,9 @@ public class NotesController : SingletonBehaviour<NotesController> {
                             Beatmap.CurrentlyLoaded.Notes[Beatmap.CurrentlyLoaded.PlayedNoteCount] = note;
                             Beatmap.CurrentlyLoaded.PlayedNoteCount++;
 
+                            Combo++;
+                            Score += GetScoreForNote(Combo, note.Accuracy);
+
                             UpdateAccuracyText();
                         }
                     }
@@ -89,6 +137,8 @@ public class NotesController : SingletonBehaviour<NotesController> {
                     }
                 }
             }
+            if (highestCombo < Combo)
+                highestCombo = Combo;
         }
         else
         {
@@ -109,8 +159,10 @@ public class NotesController : SingletonBehaviour<NotesController> {
 
                 if(resultSceneManager == null)
                 {
-                    throw new System.Exception("No scene manager found");
+                    throw new Exception("No scene manager found");
                 }
+
+                System.Threading.Thread.Sleep(1000);
 
                 SceneManager.UnloadSceneAsync("PlayingScene").completed += delegate
                 {
@@ -125,6 +177,8 @@ public class NotesController : SingletonBehaviour<NotesController> {
                 result.resultNotes[i] = (ResultNote)note;
             }
             result.totalAccuracy = CurrentAccuracy();
+            result.highestCombo = highestCombo;
+            result.score = Score;
 
             Destroy(this);
         }

@@ -11,19 +11,6 @@ public class PolyMesh : SingletonBehaviour<PolyMesh>
 
     public const int MINIMUM_COUNT = 3;
 
-    public Vector2[] SelectedTriangleUV => new Vector2[]
-    {
-        new Vector2(0, 0),
-        new Vector2(0, 1),
-        new Vector2(1, 0),
-    };
-    public Vector2[] NonSelectedTriangleUV => new Vector2[]
-    {
-        new Vector2(1, 1),
-        new Vector2(0, 1),
-        new Vector2(1, 0),
-    };
-
     private MeshFilter m_meshFilter;
     public MeshFilter meshFilter {
         get {

@@ -21,6 +21,8 @@ public class Result
 {
     public ResultNote[] resultNotes;
     public int totalAccuracy;
+    public int highestCombo;
+    public long score;
 
     public int GetCountForAccuracy(AccuracyType type)
     {

@@ -53,6 +53,8 @@ public class NoteObject : MonoBehaviour {
             Beatmap.CurrentlyLoaded.Notes[noteIndex] = note;
             Beatmap.CurrentlyLoaded.PlayedNoteCount++;
 
+            NotesController.Instance.Combo = 0;
+
             NotesController.Instance.UpdateAccuracyText();
         }
 	}
