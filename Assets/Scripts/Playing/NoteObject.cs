@@ -55,7 +55,7 @@ public class NoteObject : MonoBehaviour {
 
             NotesController.Instance.Combo = 0;
 
-            NotesController.Instance.UpdateAccuracyText();
+            PlayingSceneManager.Instance.UpdateAccuracyText(NotesController.Instance.CurrentAccuracy());
         }
 	}
 }

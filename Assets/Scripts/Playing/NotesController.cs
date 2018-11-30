@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 public class NotesController : SingletonBehaviour<NotesController> {
 
@@ -11,9 +12,6 @@ public class NotesController : SingletonBehaviour<NotesController> {
     public static float TimeToMiss => 2000 / Beatmap.CurrentlyLoaded.AccMod;
 
     Result result;
-    TextMeshProUGUI AccuracyText;
-    TextMeshProUGUI ScoreText;
-    TextMeshProUGUI ComboText;
 
     [SerializeField]
     private long m_score;
@@ -23,7 +21,7 @@ public class NotesController : SingletonBehaviour<NotesController> {
         }
         set {
             m_score = value;
-            UpdateScoreText();
+            PlayingSceneManager.Instance.UpdateScoreText(Score);
         }
     }
     [SerializeField]
@@ -34,7 +32,7 @@ public class NotesController : SingletonBehaviour<NotesController> {
         }
         set {
             m_combo = value;
-            UpdateComboText();
+            PlayingSceneManager.Instance.UpdateComboText(Combo);
         }
     }
     public int highestCombo;
@@ -44,43 +42,24 @@ public class NotesController : SingletonBehaviour<NotesController> {
         return combo * acc.ToPercent();
     }
 
-    int CurrentAccuracy()
+    public int CurrentAccuracy()
     {
         if (Beatmap.CurrentlyLoaded.PlayedNoteCount == 0)
             return 100;
         int totalAcc = 0;
-        for(int i = 0; i < Beatmap.CurrentlyLoaded.PlayedNoteCount; i++)
+        for (int i = 0; i < Beatmap.CurrentlyLoaded.PlayedNoteCount; i++)
         {
             totalAcc += Beatmap.CurrentlyLoaded.Notes[i].Accuracy.ToPercent();
         }
         return totalAcc / Beatmap.CurrentlyLoaded.PlayedNoteCount;
-    }
-
-    public void UpdateAccuracyText()
-    {
-        AccuracyText.text = CurrentAccuracy() + "%";
-    }
-    public void UpdateComboText()
-    {
-        ComboText.text = Combo + "x";
-        Debug.Log("combo");
-    }
-    public void UpdateScoreText()
-    {
-        ScoreText.text = Score.ToString("#,##0");
-    }
+    }    
 
     // Use this for initialization
     void Start ()
     {
-        AccuracyText = GameObject.Find("AccuracyText").GetComponent<TextMeshProUGUI>();
-        ComboText = GameObject.Find("ComboText").GetComponent<TextMeshProUGUI>();
-        ScoreText = GameObject.Find("ScoreText").GetComponent<TextMeshProUGUI>();
         Conductor.Instance.Play();
         result = new Result();
-        UpdateAccuracyText();
-        UpdateComboText();
-        UpdateScoreText();
+        Helper.SetBackgroundImage(Beatmap.CurrentlyLoaded.BackgroundImage);
     }
 	
 	// Update is called once per frame
@@ -116,7 +95,7 @@ public class NotesController : SingletonBehaviour<NotesController> {
                             Combo++;
                             Score += GetScoreForNote(Combo, note.Accuracy);
 
-                            UpdateAccuracyText();
+                            PlayingSceneManager.Instance.UpdateAccuracyText(CurrentAccuracy());
                         }
                     }
                 }
