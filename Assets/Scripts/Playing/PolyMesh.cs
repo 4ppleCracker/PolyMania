@@ -6,7 +6,7 @@ using UnityEngine;
 
 public class PolyMesh : SingletonBehaviour<PolyMesh>
 {
-    public int Count { get; private set; } = 6;
+    public int Count { get; private set; }
     public float Radius { get; private set; } = 3.5f;
 
     public const int MINIMUM_COUNT = 3;
@@ -31,6 +31,7 @@ public class PolyMesh : SingletonBehaviour<PolyMesh>
     private void Start()
     {
         Skin.CurrentlyLoadedSkin.Apply();
+        Count = Beatmap.CurrentlyLoaded.SliceCount;
     }
 
     public void UpdateMesh()

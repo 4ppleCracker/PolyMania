@@ -55,7 +55,7 @@ public class NotesController : SingletonBehaviour<NotesController> {
     }    
 
     // Use this for initialization
-    void Start ()
+    public void Start ()
     {
         Conductor.Instance.Play();
         result = new Result();
@@ -64,7 +64,7 @@ public class NotesController : SingletonBehaviour<NotesController> {
 	
 	// Update is called once per frame
 	void Update ()
-    {
+    {      
         if (Beatmap.CurrentlyLoaded.AnyNotesLeft)
         {
             if (Conductor.Instance.Playing)
