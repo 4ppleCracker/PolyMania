@@ -1,5 +1,6 @@
 ﻿using System;
 
+[Serializable]
 public struct Time : IComparable<Time>, IEquatable<Time>
 {
     public int Ms;

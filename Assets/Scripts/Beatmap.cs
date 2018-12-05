@@ -1,7 +1,5 @@
 ﻿using System.Collections.Generic;
-using UnityEditor;
 using UnityEngine;
-using UnityEngine.Internal;
 
 [CreateAssetMenu]
 public class Beatmap : ScriptableObject
@@ -13,12 +11,13 @@ public class Beatmap : ScriptableObject
 
     //Data
     public List<Note> Notes = new List<Note>();
+    public List<int> Test = new List<int>();
     public Texture2D BackgroundImage = null;
 
     //Modifiers
-    public readonly int SliceCount;
-    public readonly float AccMod;
-    public readonly float SpeedMod;
+    public int SliceCount;
+    public float AccMod;
+    public float SpeedMod;
     public int Bpm;
 
     ////Other data
@@ -90,48 +89,9 @@ public class Beatmap : ScriptableObject
         Load(this);
     }
 
-    //Load a dummy map by default
+    //Load a test map by default
     static Beatmap()
     {
-        Load(
-            new Beatmap(
-                bpm: 120,
-                sliceCount: 6,
-                accMod: 8, speedMod: 5,
-                songName: "120 bpm drum",
-                background: Resources.Load<Texture2D>("Textures/testBackground")
-            )
-            {
-                Notes = new List<Note>
-                {
-                    new Note(time: new Time(ms: 2062)                                   , slice: 0),
-                    new Note(time: new Time(ms: 2062) + Conductor.BeatsToTime(1, 120, 4), slice: 3),
-                    new Note(time: new Time(ms: 2062) + Conductor.BeatsToTime(2, 120, 4), slice: 1),
-                    new Note(time: new Time(ms: 2062) + Conductor.BeatsToTime(3, 120, 4), slice: 4),
-                    new Note(time: new Time(ms: 2062) + Conductor.BeatsToTime(4, 120, 4), slice: 2),
-                    new Note(time: new Time(ms: 2062) + Conductor.BeatsToTime(5, 120, 4), slice: 5),
-                    new Note(time: new Time(ms: 2062) + Conductor.BeatsToTime(6, 120, 4), slice: 3),
-                    new Note(time: new Time(ms: 2062) + Conductor.BeatsToTime(7, 120, 4), slice: 0),
-                }
-            }
-        );
+        Load(Resources.Load<Beatmap>("TestMap"));
     }
 }
-
-#if UNITY_EDITOR
-[CustomEditor(typeof(Beatmap))]
-public class BeatmapEditor : Editor<Beatmap>
-{
-    public override void OnInspectorGUI()
-    {
-        serializedObject.Update();
-
-        target.SongName = EditorGUILayout.TextField("Song Name", target.SongName);
-        target.Bpm = EditorGUILayout.IntField("Bpm", target.Bpm);
-        target.BackgroundImage = (Texture2D)EditorGUILayout.ObjectField("Image", target.BackgroundImage, typeof(Texture2D), false);
-        //EditorGUILayout.PropertyField(serializedObject.FindProperty("Notes"));
-
-        serializedObject.ApplyModifiedProperties();
-    }
-}
-#endif

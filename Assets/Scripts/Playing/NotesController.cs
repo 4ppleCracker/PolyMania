@@ -1,10 +1,6 @@
 ﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using UnityEngine.UI;
 
 public class NotesController : SingletonBehaviour<NotesController> {
 
@@ -96,6 +92,9 @@ public class NotesController : SingletonBehaviour<NotesController> {
                             Score += GetScoreForNote(Combo, note.Accuracy);
 
                             PlayingSceneManager.Instance.UpdateAccuracyText(CurrentAccuracy());
+
+                            //To make sure we dont catch 2 notes in 1 tap
+                            break;
                         }
                     }
                 }

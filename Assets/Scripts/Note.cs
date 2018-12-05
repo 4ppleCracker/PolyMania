@@ -1,13 +1,20 @@
 ﻿using System;
 
+[Serializable]
 public struct Note
 {
-    //Data
+    //Static Data
     public Time time;
     public int slice;
+
+    //Dynamic Data
+    [NonSerialized]
     public bool clicked;
+    [NonSerialized]
     public bool generated;
+    [NonSerialized]
     public int trueAccuracy;
+    [NonSerialized]
     private Accuracy m_accuracy;
     public Accuracy Accuracy {
         get {
