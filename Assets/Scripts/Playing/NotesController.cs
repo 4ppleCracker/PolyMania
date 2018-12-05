@@ -89,7 +89,7 @@ public class NotesController : SingletonBehaviour<NotesController> {
                             note.trueAccuracy = accuracy;
 
                             // Update the note in the list
-                            Beatmap.CurrentlyLoaded.Notes[Beatmap.CurrentlyLoaded.PlayedNoteCount] = note;
+                            Beatmap.CurrentlyLoaded.Notes[Beatmap.CurrentlyLoaded.GetIndexForNote(note)] = note;
                             Beatmap.CurrentlyLoaded.PlayedNoteCount++;
 
                             Combo++;

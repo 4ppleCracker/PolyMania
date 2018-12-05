@@ -47,4 +47,13 @@ public struct Note
         trueAccuracy = -1;
         m_accuracy = null;
     }
+
+    public static bool operator==(Note me, Note other)
+    {
+        return me.slice == other.slice && me.time == other.time;
+    }
+    public static bool operator !=(Note me, Note other)
+    {
+        return !(me == other);
+    }
 }

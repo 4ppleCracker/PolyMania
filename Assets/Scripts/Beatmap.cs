@@ -1,7 +1,10 @@
 ﻿using System.Collections.Generic;
+using UnityEditor;
 using UnityEngine;
+using UnityEngine.Internal;
 
-public class Beatmap
+[CreateAssetMenu]
+public class Beatmap : ScriptableObject
 
     ////Loaded data
 {
@@ -9,8 +12,8 @@ public class Beatmap
     public string SongName;
 
     //Data
-    public List<Note> Notes;
-    public Texture2D BackgroundImage;
+    public List<Note> Notes = new List<Note>();
+    public Texture2D BackgroundImage = null;
 
     //Modifiers
     public readonly int SliceCount;
@@ -20,10 +23,36 @@ public class Beatmap
 
     ////Other data
 
-    public int PlayedNoteCount;
+    public int PlayedNoteCount = 0;
 
     //Accessors
     public bool AnyNotesLeft => PlayedNoteCount < Notes.Count;
+
+    //Methods
+    public Note GetLatestForSlice(int slice)
+    {
+        for (int i = CurrentlyLoaded.PlayedNoteCount; i < CurrentlyLoaded.Notes.Count; i++)
+        {
+            Note note = CurrentlyLoaded.Notes[i];
+            if (note.slice == slice)
+            {
+                return note;
+            }
+        }
+        throw new System.Exception();
+    }
+    public int GetIndexForNote(Note note)
+    {
+        for (int i = CurrentlyLoaded.PlayedNoteCount; i < CurrentlyLoaded.Notes.Count; i++)
+        {
+            Note tempNote = CurrentlyLoaded.Notes[i];
+            if (tempNote == note)
+            {
+                return i;
+            }
+        }
+        throw new System.Exception();
+    }
 
     //Loading
     public static Beatmap CurrentlyLoaded { get; private set; }
@@ -54,10 +83,6 @@ public class Beatmap
         SpeedMod = speedMod;
         SongName = songName;
         BackgroundImage = background;
-
-        //Default values
-        PlayedNoteCount = 0;
-        Notes = null;
     }
 
     public void Reload()
@@ -92,3 +117,21 @@ public class Beatmap
         );
     }
 }
+
+#if UNITY_EDITOR
+[CustomEditor(typeof(Beatmap))]
+public class BeatmapEditor : Editor<Beatmap>
+{
+    public override void OnInspectorGUI()
+    {
+        serializedObject.Update();
+
+        target.SongName = EditorGUILayout.TextField("Song Name", target.SongName);
+        target.Bpm = EditorGUILayout.IntField("Bpm", target.Bpm);
+        target.BackgroundImage = (Texture2D)EditorGUILayout.ObjectField("Image", target.BackgroundImage, typeof(Texture2D), false);
+        //EditorGUILayout.PropertyField(serializedObject.FindProperty("Notes"));
+
+        serializedObject.ApplyModifiedProperties();
+    }
+}
+#endif

@@ -1,0 +1,14 @@
+{
+    "name": "Tests",
+    "references": [
+        "PolyMania"
+    ],
+    "optionalUnityReferences": [
+        "TestAssemblies"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false
+}

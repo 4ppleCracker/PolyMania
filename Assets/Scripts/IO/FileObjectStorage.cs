@@ -7,7 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
 
-class FileObjectStorage<T>
+public class FileObjectStorage<T>
 {
     struct FileObject
     {
@@ -53,6 +53,19 @@ class FileObjectStorage<T>
             writer.Serialize(file, obj);
 
             Files.Add(new FileObject() { path = new FileInfo(path), name = name });
+        }
+    }
+    public void DeleteObject(string name)
+    {
+        foreach (FileObject obj in Files)
+        {
+            if (obj.name == name)
+            {
+                if (!obj.path.Exists)
+                    break;
+
+                File.Delete(obj.path.FullName);
+            }
         }
     }
 }
