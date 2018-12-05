@@ -10,6 +10,8 @@ public class ResultSceneManager : SingletonBehaviour<ResultSceneManager> {
 
     TextMeshProUGUI accuracyListText;
     TextMeshProUGUI accuracyText;
+    TextMeshProUGUI scoreText;
+    TextMeshProUGUI highestComboText;
 
     public void SetAccuracyList(string format)
     {
@@ -28,10 +30,18 @@ public class ResultSceneManager : SingletonBehaviour<ResultSceneManager> {
 
         accuracyListText = GameObject.Find("AccuracyListText").GetComponent<TextMeshProUGUI>();
         accuracyText = GameObject.Find("AccuracyText").GetComponent<TextMeshProUGUI>();
+        scoreText = GameObject.Find("ScoreText").GetComponent<TextMeshProUGUI>();
+        highestComboText = GameObject.Find("HighestComboText").GetComponent<TextMeshProUGUI>();
 
         string format = accuracyListText.text;
         SetAccuracyList(format);
 
-        accuracyText.text = result.totalAccuracy + "%";
+        accuracyText.text = "Accuracy: " + result.totalAccuracy + "%";
+
+        scoreText.text = "Score: " + result.score.ToString("#,##0");
+
+        highestComboText.text = "Highest Combo: " + result.highestCombo + "x";
+
+        Helper.SetBackgroundImage(Beatmap.CurrentlyLoaded.BackgroundImage);
     }
 }

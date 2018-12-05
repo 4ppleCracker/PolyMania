@@ -1,5 +1,6 @@
 ﻿using UnityEditor;
 
+#if UNITY_EDITOR
 [CustomEditor(typeof(PolyMesh))]
 public class PolyMeshEditor : Editor<PolyMesh>
 {
@@ -26,3 +27,4 @@ public class PolyMeshEditor : Editor<PolyMesh>
         }
     }
 }
+#endif

@@ -12,19 +12,21 @@ public class AimController : SingletonBehaviour<AimController> {
 	
 	// Update is called once per frame
 	void Update () {
-        //Do some mathy stuff ??
-        Vector2 originRelative = Input.mousePosition - Camera.main.WorldToScreenPoint(PolyMesh.Instance.transform.position);
-        float arctan = Mathf.Atan(originRelative.x / originRelative.y);
-        float sectorDec = arctan / ((2 * Mathf.PI) / Beatmap.CurrentlyLoaded.SliceCount);
+        if (Beatmap.CurrentlyLoaded != null)
+        {
+            Vector2 originRelative = Input.mousePosition - Camera.main.WorldToScreenPoint(PolyMesh.Instance.transform.position);
+            float arctan = Mathf.Atan(originRelative.x / originRelative.y);
+            float sectorDec = arctan / ((2 * Mathf.PI) / Beatmap.CurrentlyLoaded.SliceCount);
 
-        float max = Beatmap.CurrentlyLoaded.SliceCount / 4;
+            float max = Beatmap.CurrentlyLoaded.SliceCount / 4;
 
-        sectorDec = originRelative.x < 0 ? -sectorDec : sectorDec;
-        sectorDec = sectorDec > 0 ? sectorDec : max * 2 + sectorDec + 1;
-        sectorDec = originRelative.x < 0 ? Beatmap.CurrentlyLoaded.SliceCount - sectorDec : sectorDec;
+            sectorDec = originRelative.x < 0 ? -sectorDec : sectorDec;
+            sectorDec = sectorDec > 0 ? sectorDec : max * 2 + sectorDec + 1;
+            sectorDec = originRelative.x < 0 ? Beatmap.CurrentlyLoaded.SliceCount - sectorDec : sectorDec;
 
-        int sector = (int)sectorDec;
+            int sector = (int)sectorDec;
 
-        SelectedSlice = sector;
+            SelectedSlice = sector;
+        }
     }
 }

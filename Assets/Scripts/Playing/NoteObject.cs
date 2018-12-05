@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using UnityEditor;
 using UnityEngine;
 
 public class NoteObject : MonoBehaviour {
@@ -53,19 +52,9 @@ public class NoteObject : MonoBehaviour {
             Beatmap.CurrentlyLoaded.Notes[noteIndex] = note;
             Beatmap.CurrentlyLoaded.PlayedNoteCount++;
 
-            NotesController.Instance.UpdateAccuracyText();
+            NotesController.Instance.Combo = 0;
+
+            PlayingSceneManager.Instance.UpdateAccuracyText(NotesController.Instance.CurrentAccuracy());
         }
 	}
-}
-
-[CustomEditor(typeof(NoteObject))]
-public class NoteObjectEditor : Editor<NoteObject>
-{
-    private void OnSceneGUI()
-    {
-        Handles.Label(target.transform.position + Vector3.up * 1.1f, "Rotation: " + target.GetDegrees());
-        Handles.Label(target.transform.position + Vector3.up * 1.2f, "Slice: " + target.note.slice);
-        Handles.Label(target.transform.position + Vector3.up * 1.3f, "Time to click: " + target.note.TimeToClick);
-        Handles.Label(target.transform.position + Vector3.up * 1.4f, "Time: " + target.note.time);
-    }
 }

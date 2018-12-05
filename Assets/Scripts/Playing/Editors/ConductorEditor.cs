@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using UnityEditor;
 
+#if UNITY_EDITOR
 [CustomEditor(typeof(Conductor))]
 public class ConductorEditor : Editor<Conductor>
 {
@@ -51,3 +52,4 @@ public class ConductorEditor : Editor<Conductor>
         serializedObject.ApplyModifiedProperties();
     }
 }
+#endif
