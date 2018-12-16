@@ -20,8 +20,6 @@ public class ConductorEditor : Editor<Conductor>
     {
         serializedObject.Update();
 
-        EditorGUILayout.PropertyField(songProperty);
-
         EditorGUILayout.Separator();
 
         showDebug = EditorGUILayout.Foldout(showDebug, "Debug Info");

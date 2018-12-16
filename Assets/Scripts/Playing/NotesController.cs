@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -56,12 +57,15 @@ public class NotesController : SingletonBehaviour<NotesController> {
         Beatmap.Load(Resources.Load<Beatmap>("Hitorigoto -TV MIX-"));
         Helper.SetBackgroundImage(Beatmap.CurrentlyLoaded.BackgroundImage);
         result = new Result();
-        Conductor.Instance.Play(Beatmap.GetAudio(Beatmap.CurrentlyLoaded.Song));
+        Conductor.Instance.Play(Beatmap.GetAudio(Beatmap.CurrentlyLoaded.Song), (int)AllowedTimeToClick);
     }
-	
-	// Update is called once per frame
-	void Update ()
-    {      
+
+    bool noUpdate = false;
+
+    // Update is called once per frame
+    void Update ()
+    {
+        if (noUpdate) return;
         if (Beatmap.CurrentlyLoaded.AnyNotesLeft)
         {
             if (Conductor.Instance.Playing)
@@ -121,33 +125,10 @@ public class NotesController : SingletonBehaviour<NotesController> {
         }
         else
         {
-            SceneManager.LoadSceneAsync("ResultsScene", LoadSceneMode.Additive).completed += delegate
-            {
-                Scene resultScene = SceneManager.GetSceneByName("ResultsScene");
-
-                ResultSceneManager resultSceneManager = null;
-
-                foreach(GameObject obj in resultScene.GetRootGameObjects())
-                {
-                    ResultSceneManager comp;
-                    if ((comp = obj.GetComponent<ResultSceneManager>()) != null)
-                    {
-                        resultSceneManager = comp;
-                    }
-                }
-
-                if(resultSceneManager == null)
-                {
-                    throw new Exception("No scene manager found");
-                }
-
-                System.Threading.Thread.Sleep(1000);
-
-                SceneManager.UnloadSceneAsync("PlayingScene").completed += delegate
-                {
-                    resultSceneManager.Load(result);
-                };
-            };
+            StartCoroutine(Helper.FadeOut(Conductor.Instance.Player, 1));
+            SceneManager.sceneLoaded += UnloadPlayingScene;
+            Initiate.Fade("ResultsScene", Color.black, 1);
+            SceneManager.sceneLoaded -= UnloadPlayingScene;
 
             result.resultNotes = new ResultNote[Beatmap.CurrentlyLoaded.Notes.Count];
             for(int i = 0; i < Beatmap.CurrentlyLoaded.Notes.Count; i++)
@@ -159,7 +140,33 @@ public class NotesController : SingletonBehaviour<NotesController> {
             result.highestCombo = highestCombo;
             result.score = Score;
 
-            Destroy(this);
+            noUpdate = true;
         }
+    }
+
+    private void UnloadPlayingScene(Scene arg0, LoadSceneMode arg1)
+    {
+        Scene resultScene = SceneManager.GetSceneByName("ResultsScene");
+
+        ResultSceneManager resultSceneManager = null;
+
+        foreach (GameObject obj in resultScene.GetRootGameObjects())
+        {
+            ResultSceneManager comp;
+            if ((comp = obj.GetComponent<ResultSceneManager>()) != null)
+            {
+                resultSceneManager = comp;
+            }
+        }
+
+        if (resultSceneManager == null)
+        {
+            throw new Exception("No scene manager found");
+        }
+
+        SceneManager.UnloadSceneAsync("PlayingScene").completed += delegate
+        {
+            resultSceneManager.Load(result);
+        };
     }
 }

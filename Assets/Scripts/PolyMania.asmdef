@@ -1,7 +1,8 @@
 {
     "name": "PolyMania",
     "references": [
-        "Unity.TextMeshPro"
+        "Unity.TextMeshPro",
+        "SimpleSceneFadeLoadSystem"
     ],
     "optionalUnityReferences": [],
     "includePlatforms": [],

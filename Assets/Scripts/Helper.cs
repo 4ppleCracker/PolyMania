@@ -1,8 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -20,5 +17,35 @@ public static class Helper
         {
             image.color = Color.clear;
         }
+    }
+
+    public static IEnumerator FadeOut(AudioSource audioSource, float FadeTime, Action after=null)
+    {
+        float startVolume = audioSource.volume;
+
+        while (audioSource.volume > 0)
+        {
+            audioSource.volume -= startVolume * UnityEngine.Time.deltaTime / FadeTime;
+            yield return null;
+        }
+
+        audioSource.Stop();
+
+        after?.Invoke();
+    }
+    public static IEnumerator FadeIn(AudioSource audioSource, float FadeTime, Action after = null)
+    {
+        audioSource.volume = 0.0f;
+
+        audioSource.Play();
+
+        while (audioSource.volume < 1)
+        {
+            audioSource.volume += 1 * UnityEngine.Time.deltaTime / FadeTime;
+
+            yield return null;
+        }
+
+        after?.Invoke();
     }
 }

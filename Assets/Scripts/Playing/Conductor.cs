@@ -1,28 +1,28 @@
 ﻿using System.Collections;
 using UnityEngine;
 using Unity.Collections;
+using System.Threading.Tasks;
 
 [RequireComponent(typeof(AudioSource))]
 public class Conductor : SingletonBehaviour<Conductor> {
 
     // Inspector fields
-    public AudioClip Song;
+    public AudioClip Song => Player.clip;
     public AudioSource Player;
 
-    public Time Position => new Time(sec: (float)Player.timeSamples / Song.frequency);
-    public Time Length => new Time(sec: (float)Song.samples / Song.frequency);
+    public Time Position => Song == null ? new Time(0) : new Time(sec: (float)Player.timeSamples / Song.frequency);
+    public Time Length => Song == null ? new Time(0) : new Time(sec: (float)Song.samples / Song.frequency);
 
     public bool SongLoaded => Song != null;
 
     public bool Playing = false;
 
-    public void Play(AudioClip song)
+    public void Play(AudioClip song, int delay=0)
     {
-        Song = song;
-        Player.Stop();
         Player.time = 0;
-        Player.clip = Song;
-        Player.Play();
+        Player.clip = song;
+        if (Beatmap.CurrentlyLoaded.Notes[0].time.Ms < delay) delay = Beatmap.CurrentlyLoaded.Notes[0].time.Ms;
+        StartCoroutine(Helper.FadeIn(Player, delay / 1000));
         Playing = true;
     }
 

@@ -14,15 +14,6 @@ MonoBehaviour:
   SongName: Hitorigoto -TV MIX-
   Notes:
   - time:
-      Ms: 1095
-    slice: 0
-  - time:
-      Ms: 1458
-    slice: 1
-  - time:
-      Ms: 1822
-    slice: 2
-  - time:
       Ms: 2549
     slice: 1
   - time:
@@ -37,7 +28,7 @@ MonoBehaviour:
   BackgroundImage: {fileID: 0}
   Song: F:\osu!\Songs\602861 ClariS - Hitorigoto -TV MIX-\audio.mp3
   SliceCount: 6
-  AccMod: 0
-  SpeedMod: 0
+  AccMod: 5
+  SpeedMod: 4
   Bpm: 0
-  PlayedNoteCount: 0
+  PlayedNoteCount: 4

@@ -37,7 +37,7 @@ public class Accuracy {
                 percent = 30;
                 break;
             default:
-                percent = 10;
+                percent = 0;
                 break;
         }
         return percent;
