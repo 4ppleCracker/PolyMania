@@ -16,8 +16,9 @@ public class Conductor : SingletonBehaviour<Conductor> {
 
     public bool Playing = false;
 
-    public void Play()
+    public void Play(AudioClip song)
     {
+        Song = song;
         Player.Stop();
         Player.time = 0;
         Player.clip = Song;

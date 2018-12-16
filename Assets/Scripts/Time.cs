@@ -20,15 +20,16 @@ public struct Time : IComparable<Time>, IEquatable<Time>
     public override int GetHashCode() => 2073418786 + Ms.GetHashCode();
     public override bool Equals(object obj) => obj is Time && Equals((Time)obj);
     public override string ToString() => Ms + " ms";
-    public static implicit operator Time(float sec) => new Time(sec);
-    public static implicit operator Time(int ms) => new Time(ms);
     public static bool operator >(Time me, Time other) => me.Ms > other.Ms;
     public static bool operator <(Time me, Time other) => me.Ms < other.Ms;
     public static bool operator ==(Time me, Time other) => me.Ms == other.Ms;
     public static bool operator !=(Time me, Time other) => me.Ms != other.Ms;
     public static bool operator >=(Time me, Time other) => me.Ms >= other.Ms;
     public static bool operator <=(Time me, Time other) => me.Ms <= other.Ms;
-    public static Time operator +(Time me, Time other) => me.Ms + other.Ms;
-    public static Time operator -(Time me, Time other) => me.Ms - other.Ms;
-    public static Time operator /(Time me, Time other) => me.Ms / other.Ms;
+    public static Time operator +(Time me, Time other) => me + other.Ms;
+    public static Time operator -(Time me, Time other) => me - other.Ms;
+    public static Time operator /(Time me, Time other) => me / other.Ms;
+    public static Time operator +(Time me, int other) => new Time(ms: me.Ms + other);
+    public static Time operator -(Time me, int other) => new Time(ms: me.Ms - other);
+    public static Time operator /(Time me, int other) => new Time(ms: me.Ms / other);
 }

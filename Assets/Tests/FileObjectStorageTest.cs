@@ -20,6 +20,18 @@ public class FileObjectStorageTest {
         storage.DeleteObject("one");
         storage.DeleteObject("two");
 
+        bool deleteSuccess = false;
+        try
+        {
+            storage.GetObject("one");
+            storage.GetObject("two");
+        }
+        catch
+        {
+            deleteSuccess = true;
+        }
+        Assert.AreEqual(true, deleteSuccess);
+
         System.IO.Directory.Delete(tempPath);
     }
 }

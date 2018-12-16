@@ -6,8 +6,8 @@ using UnityEngine;
 
 public class PolyMesh : SingletonBehaviour<PolyMesh>
 {
-    public int Count { get; private set; }
-    public float Radius { get; private set; } = 3.5f;
+    public int Count { get; private set; } = 4;
+    public float Radius { get; private set; } = 4f;
 
     public const int MINIMUM_COUNT = 3;
 

@@ -31,9 +31,10 @@ public class BeatmapEditor : Editor<Beatmap>
         EditorGUILayout.LabelField("Map Data");
         {
             target.BackgroundImage = (Texture2D)EditorGUILayout.ObjectField("Image", target.BackgroundImage, typeof(Texture2D), false);
-
-            EditorGUILayout.PropertyField(serializedObject.FindProperty("Notes"), true);
+            target.Song = EditorGUILayout.TextField("Song", target.Song);
         }
+
+        EditorGUILayout.PropertyField(serializedObject.FindProperty("Notes"), true);
 
         serializedObject.ApplyModifiedProperties();
     }

@@ -18,6 +18,11 @@ public class NoteObject : MonoBehaviour {
         return degrees;
     }
 
+    public void Start()
+    {
+        Update();
+    }
+
     // Update is called once per frame
     void Update ()
     {

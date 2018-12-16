@@ -4,7 +4,7 @@ using UnityEngine.SceneManagement;
 
 public class NotesController : SingletonBehaviour<NotesController> {
 
-    public static float AllowedTimeToClick => 4000 / Beatmap.CurrentlyLoaded.AccMod;
+    public static float AllowedTimeToClick => 4000 / Beatmap.CurrentlyLoaded.SpeedMod;
     public static float TimeToMiss => 2000 / Beatmap.CurrentlyLoaded.AccMod;
 
     Result result;
@@ -53,9 +53,10 @@ public class NotesController : SingletonBehaviour<NotesController> {
     // Use this for initialization
     public void Start ()
     {
-        Conductor.Instance.Play();
-        result = new Result();
+        Beatmap.Load(Resources.Load<Beatmap>("Hitorigoto -TV MIX-"));
         Helper.SetBackgroundImage(Beatmap.CurrentlyLoaded.BackgroundImage);
+        result = new Result();
+        Conductor.Instance.Play(Beatmap.GetAudio(Beatmap.CurrentlyLoaded.Song));
     }
 	
 	// Update is called once per frame
@@ -76,7 +77,7 @@ public class NotesController : SingletonBehaviour<NotesController> {
 
                         Note note = Beatmap.CurrentlyLoaded.Notes[i];
 
-                        if (Conductor.Instance.Position >= note.time - AllowedTimeToClick && note.slice == AimController.Instance.SelectedSlice)
+                        if (Conductor.Instance.Position >= note.time - (int)AllowedTimeToClick && note.slice == AimController.Instance.SelectedSlice)
                         {
                             //Calculate accuracy for note
                             int accuracy = (int)(note.TimeToClick.Ms * (Beatmap.CurrentlyLoaded.AccMod / 15));
