@@ -5,14 +5,8 @@ using UnityEditor;
 [CustomEditor(typeof(Conductor))]
 public class ConductorEditor : Editor<Conductor>
 {
-    SerializedProperty songProperty;
     bool showDebug = false;
     bool showNotes = false;
-
-    public void OnEnable()
-    {
-        songProperty = serializedObject.FindProperty("Song");
-    }
 
     public override bool RequiresConstantRepaint() => true;
 

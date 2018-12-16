@@ -55,12 +55,29 @@ public class PlayingSceneManager : SingletonBehaviour<PlayingSceneManager> {
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
         Beatmap.CurrentlyLoaded.Reload();
     }
+    bool paused;
+    public void Pause()
+    {
+        paused = !paused;
+        if(paused)
+        {
+            Conductor.Instance.Player.Pause();
+        }
+        else
+        {
+            Conductor.Instance.Player.UnPause();
+        }
+    }
 
     private void Update()
     {
         if (Input.GetKeyDown(KeyCode.R))
         {
             StartCoroutine(CheckRHold());
+        }
+        if (Input.GetKeyDown(KeyCode.Escape))
+        {
+            Pause();
         }
     }
 }

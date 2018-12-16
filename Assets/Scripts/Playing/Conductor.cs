@@ -15,22 +15,20 @@ public class Conductor : SingletonBehaviour<Conductor> {
 
     public bool SongLoaded => Song != null;
 
-    public bool Playing = false;
+    public bool Playing => Player.isPlaying;
 
     public void Play(AudioClip song, int delay=0)
     {
-        Player.time = 0;
         Player.clip = song;
         if (Beatmap.CurrentlyLoaded.Notes[0].time.Ms < delay) delay = Beatmap.CurrentlyLoaded.Notes[0].time.Ms;
         StartCoroutine(Helper.FadeIn(Player, delay / 1000));
-        Playing = true;
     }
 
     private void Update()
     {
         if (Position >= Length)
         {
-            Playing = false;
+            Player.Stop();
         }
     }
 
