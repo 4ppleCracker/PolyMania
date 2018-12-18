@@ -14,6 +14,10 @@ public class Accuracy {
         this.type = type;
         this.tooLate = tooLate;
     }
+    public Accuracy()
+    {
+
+    }
 
     /// <returns>value of 0-100 depending on the accuracy</returns>
     public int ToPercent()

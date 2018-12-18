@@ -6,7 +6,7 @@ using UnityEngine;
 
 public class PolyMesh : SingletonBehaviour<PolyMesh>
 {
-    public int Count { get; private set; } = 4;
+    public uint Count { get; private set; } = 4;
     public float Radius { get; private set; } = 4f;
 
     public const int MINIMUM_COUNT = 3;
@@ -46,7 +46,7 @@ public class PolyMesh : SingletonBehaviour<PolyMesh>
 
     public Mesh mesh;
 
-    public void Generate(float radius, int n)
+    public void Generate(float radius, uint n)
     {
         if (n < MINIMUM_COUNT)
             throw new Exception("Cannot have less than 3 sides");
@@ -62,19 +62,19 @@ public class PolyMesh : SingletonBehaviour<PolyMesh>
         Vector3[] verticies = new Vector3[n*2+1];
         for (int i = 0; i < n; i++)
         {
-            verticies[i] = PosForVertices(i, n, radius);
-            verticies[i+n] = PosForVertices(i, n, radius);
+            verticies[i] = PosForVertices(i, (int)n, radius);
+            verticies[i+n] = PosForVertices(i, (int)n, radius);
         }
         verticies[n*2] = new Vector3(0, 0, 0);
 
         //Triangles
         int[] triangles = new int[(n) * 3];
-        for (int i = 0; i < n; i++)
+        for (uint i = 0; i < n; i++)
         {
-            triangles[i * 3] = n*2;
-            triangles[(i * 3) + 1] = i;
+            triangles[i * 3] = (int)n*2;
+            triangles[(i * 3) + 1] = (int)i;
             //Modulos so last vertice is actually the first vertice to connect the last triangle to the first
-            triangles[(i * 3) + 2] = (i + 1) % n + n;
+            triangles[(i * 3) + 2] = (int)(((i + 1) % n) + n);
         }
 
         //Normals

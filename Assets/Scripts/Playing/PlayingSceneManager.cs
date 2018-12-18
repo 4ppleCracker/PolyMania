@@ -32,6 +32,7 @@ public class PlayingSceneManager : SingletonBehaviour<PlayingSceneManager> {
         UpdateAccuracyText(100);
         UpdateComboText(0);
         UpdateScoreText(0);
+        Beatmap.CurrentlyLoaded.Song = Beatmap.GetAudio(Beatmap.CurrentlyLoaded.SongPath);
     }
 
     int holdTime = 250;

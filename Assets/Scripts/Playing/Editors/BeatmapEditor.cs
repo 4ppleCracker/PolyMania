@@ -19,7 +19,7 @@ public class BeatmapEditor : Editor<Beatmap>
         {
             target.Bpm = EditorGUILayout.IntField("Bpm", target.Bpm);
 
-            target.SliceCount = EditorGUILayout.IntField("Slice Count", target.SliceCount);
+            target.SliceCount = (uint)EditorGUILayout.IntField("Slice Count", (int)target.SliceCount);
             if (target.SliceCount < PolyMesh.MINIMUM_COUNT)
                 target.SliceCount = PolyMesh.MINIMUM_COUNT;
 
@@ -31,7 +31,6 @@ public class BeatmapEditor : Editor<Beatmap>
         EditorGUILayout.LabelField("Map Data");
         {
             target.BackgroundImage = (Texture2D)EditorGUILayout.ObjectField("Image", target.BackgroundImage, typeof(Texture2D), false);
-            target.Song = EditorGUILayout.TextField("Song", target.Song);
         }
 
         EditorGUILayout.PropertyField(serializedObject.FindProperty("Notes"), true);

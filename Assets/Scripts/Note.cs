@@ -1,21 +1,24 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Xml.Serialization;
 
 [Serializable]
 public struct Note
 {
     //Static Data
     public Time time;
-    public int slice;
+    public uint slice;
 
     //Dynamic Data
-    [NonSerialized]
+    [NonSerialized, XmlIgnore]
     public bool clicked;
-    [NonSerialized]
+    [NonSerialized, XmlIgnore]
     public bool generated;
-    [NonSerialized]
+    [NonSerialized, XmlIgnore]
     public int trueAccuracy;
-    [NonSerialized]
+    [NonSerialized, XmlIgnore]
     private Accuracy m_accuracy;
+    [XmlIgnore]
     public Accuracy Accuracy {
         get {
             if (m_accuracy != null)
@@ -45,7 +48,25 @@ public struct Note
         return $"Time = {time}, slice = {slice}, clicked = {clicked}, generated = {generated}, accuracy = {trueAccuracy}";
     }
 
-    public Note(Time time, int slice)
+    public override bool Equals(object obj)
+    {
+        if (!(obj is Note))
+            return false;
+
+        var note = (Note)obj;
+        return time.Equals(note.time) &&
+               slice == note.slice;
+    }
+
+    public override int GetHashCode()
+    {
+        var hashCode = 750083029;
+        hashCode = hashCode * -1521134295 + EqualityComparer<Time>.Default.GetHashCode(time);
+        hashCode = hashCode * -1521134295 + slice.GetHashCode();
+        return hashCode;
+    }
+
+    public Note(Time time, uint slice)
     {
         this.time = time;
         this.slice = slice;

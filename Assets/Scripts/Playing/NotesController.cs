@@ -54,10 +54,9 @@ public class NotesController : SingletonBehaviour<NotesController> {
     // Use this for initialization
     public void Start ()
     {
-        Beatmap.Load(Resources.Load<Beatmap>("Hitorigoto -TV MIX-"));
         Helper.SetBackgroundImage(Beatmap.CurrentlyLoaded.BackgroundImage);
         result = new Result();
-        Conductor.Instance.Play(Beatmap.GetAudio(Beatmap.CurrentlyLoaded.Song), (int)AllowedTimeToClick);
+        Conductor.Instance.Play(Beatmap.CurrentlyLoaded.Song);
     }
 
     bool noUpdate = false;
@@ -72,7 +71,7 @@ public class NotesController : SingletonBehaviour<NotesController> {
             {
                 if (Input.GetKeyDown(KeyCode.Space))
                 {
-                    for (int i = Beatmap.CurrentlyLoaded.PlayedNoteCount; i < Beatmap.CurrentlyLoaded.Notes.Count; i++)
+                    for (int i = Beatmap.CurrentlyLoaded.PlayedNoteCount; i < Beatmap.CurrentlyLoaded.Notes.Length; i++)
                     {
                         if (Beatmap.CurrentlyLoaded.Notes[i].TimeToClick.Ms <= -AllowedTimeToClick)
                             continue;
@@ -103,7 +102,7 @@ public class NotesController : SingletonBehaviour<NotesController> {
                         }
                     }
                 }
-                for (int i = Beatmap.CurrentlyLoaded.PlayedNoteCount; i < Beatmap.CurrentlyLoaded.Notes.Count; i++)
+                for (int i = Beatmap.CurrentlyLoaded.PlayedNoteCount; i < Beatmap.CurrentlyLoaded.Notes.Length; i++)
                 {
                     if (Beatmap.CurrentlyLoaded.Notes[i].TimeToClick.Ms <= -AllowedTimeToClick)
                         continue;
@@ -130,8 +129,8 @@ public class NotesController : SingletonBehaviour<NotesController> {
             Initiate.Fade("ResultsScene", Color.black, 1);
             SceneManager.sceneLoaded -= UnloadPlayingScene;
 
-            result.resultNotes = new ResultNote[Beatmap.CurrentlyLoaded.Notes.Count];
-            for(int i = 0; i < Beatmap.CurrentlyLoaded.Notes.Count; i++)
+            result.resultNotes = new ResultNote[Beatmap.CurrentlyLoaded.Notes.Length];
+            for(int i = 0; i < Beatmap.CurrentlyLoaded.Notes.Length; i++)
             {
                 Note note = Beatmap.CurrentlyLoaded.Notes[i];
                 result.resultNotes[i] = (ResultNote)note;
