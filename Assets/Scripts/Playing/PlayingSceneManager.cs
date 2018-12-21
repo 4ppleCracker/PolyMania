@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.SceneManagement;
 
 public class PlayingSceneManager : SingletonBehaviour<PlayingSceneManager> {
@@ -24,8 +25,8 @@ public class PlayingSceneManager : SingletonBehaviour<PlayingSceneManager> {
         ScoreText.text = score.ToString("#,##0");
     }
 
-    // Use this for initialization
-    void Start () {
+    private void Start()
+    {
         AccuracyText = GameObject.Find("AccuracyText").GetComponent<TextMeshProUGUI>();
         ComboText = GameObject.Find("ComboText").GetComponent<TextMeshProUGUI>();
         ScoreText = GameObject.Find("ScoreText").GetComponent<TextMeshProUGUI>();
@@ -33,7 +34,10 @@ public class PlayingSceneManager : SingletonBehaviour<PlayingSceneManager> {
         UpdateComboText(0);
         UpdateScoreText(0);
         Beatmap.CurrentlyLoaded.Song = Beatmap.GetAudio(Beatmap.CurrentlyLoaded.SongPath);
+        PolyMesh.Instance.Generate(PolyMesh.Instance.Radius, Beatmap.CurrentlyLoaded.SliceCount);
     }
+
+    public Result result = new Result();
 
     int holdTime = 250;
     IEnumerator CheckRHold()
@@ -51,10 +55,45 @@ public class PlayingSceneManager : SingletonBehaviour<PlayingSceneManager> {
         Restart();
     }
 
+    public static void StartPlaying(Beatmap map)
+    {
+        Beatmap.Load(map);
+        Initiate.Fade("PlayingScene", Color.black, 1);
+    }
+
+    public static void GotoResult()
+    {
+        DontDestroyOnLoad(Instance);
+        SceneManager.sceneLoaded += LoadResultsScene;
+        Initiate.Fade("ResultsScene", Color.black, 1);
+    }
+    private static void LoadResultsScene(Scene resultScene, LoadSceneMode y)
+    {
+        ResultSceneManager resultSceneManager = null;
+
+        foreach (GameObject obj in resultScene.GetRootGameObjects())
+        {
+            ResultSceneManager comp;
+            if ((comp = obj.GetComponent<ResultSceneManager>()) != null)
+            {
+                resultSceneManager = comp;
+            }
+        }
+
+        if (resultSceneManager == null)
+        {
+            throw new Exception("No scene manager found");
+        }
+
+        resultSceneManager.Load(Instance.result);
+
+        Destroy(Instance);
+        SceneManager.sceneLoaded -= LoadResultsScene;
+    }
+
     public void Restart()
     {
-        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
-        Beatmap.CurrentlyLoaded.Reload();
+        StartPlaying(Beatmap.CurrentlyLoaded);
     }
     bool paused;
     public void Pause()

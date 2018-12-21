@@ -31,7 +31,9 @@ public class PolyMesh : SingletonBehaviour<PolyMesh>
     private void Start()
     {
         Skin.CurrentlyLoadedSkin.Apply();
+#if UNITY_EDITOR
         Count = Beatmap.CurrentlyLoaded.SliceCount;
+#endif
     }
 
     public void UpdateMesh()

@@ -1,14 +1,15 @@
 ﻿using System;
+using System.Collections;
+using System.Linq;
 using System.Threading;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
 public class NotesController : SingletonBehaviour<NotesController> {
 
-    public static float AllowedTimeToClick => 4000 / Beatmap.CurrentlyLoaded.SpeedMod;
-    public static float TimeToMiss => 2000 / Beatmap.CurrentlyLoaded.AccMod;
-
-    Result result;
+    public static float AllowedTimeToClick => 3000 / Beatmap.CurrentlyLoaded.AccMod;
+    public static float ShowTime = 4000 / Beatmap.CurrentlyLoaded.SpeedMod;
+    public static float TimeToMiss => 3000 / Beatmap.CurrentlyLoaded.AccMod;
 
     [SerializeField]
     private long m_score;
@@ -41,23 +42,64 @@ public class NotesController : SingletonBehaviour<NotesController> {
 
     public int CurrentAccuracy()
     {
-        if (Beatmap.CurrentlyLoaded.PlayedNoteCount == 0)
+        if (Beatmap.CurrentlyLoaded.PlayedNotes.Count() == 0)
             return 100;
         int totalAcc = 0;
-        for (int i = 0; i < Beatmap.CurrentlyLoaded.PlayedNoteCount; i++)
+        int total = Beatmap.CurrentlyLoaded.PlayedNotes.Count();
+        for (int i = 0; i < total; i++)
         {
             totalAcc += Beatmap.CurrentlyLoaded.Notes[i].Accuracy.ToPercent();
         }
-        return totalAcc / Beatmap.CurrentlyLoaded.PlayedNoteCount;
-    }    
+        return totalAcc / total;
+    }
+
+    public Vector3 NoteSize;
 
     // Use this for initialization
     public void Start ()
     {
         Helper.SetBackgroundImage(Beatmap.CurrentlyLoaded.BackgroundImage);
-        result = new Result();
-        Conductor.Instance.Play(Beatmap.CurrentlyLoaded.Song);
+        Conductor.Instance.Play(Beatmap.CurrentlyLoaded.Song, 1000, 1000);
+
+        NotePrefab = Resources.Load<GameObject>("Objects/Note");
+        NoteSize = NotePrefab.GetComponent<MeshFilter>().sharedMesh.bounds.max;
     }
+
+    public void Click()
+    {
+        for (int i = 0; i < Beatmap.CurrentlyLoaded.Notes.Length; i++)
+        {
+            //Positive = early, negative = late
+            if ((Beatmap.CurrentlyLoaded.Notes[i].TimeToClick.Ms >= AllowedTimeToClick))
+                continue;
+            if ((Beatmap.CurrentlyLoaded.Notes[i].TimeToClick.Ms <= -TimeToMiss))
+                continue;
+
+            Note note = Beatmap.CurrentlyLoaded.Notes[i];
+
+            if (note.slice == AimController.Instance.SelectedSlice)
+            {
+                //Calculate accuracy for note
+                int accuracy = (int)(note.TimeToClick.Ms * (Beatmap.CurrentlyLoaded.AccMod / 15));
+
+                note.clicked = true;
+                note.trueAccuracy = accuracy;
+
+                // Update the note in the list
+                Beatmap.CurrentlyLoaded.Notes[Beatmap.CurrentlyLoaded.GetIndexForNote(note)] = note;
+
+                Combo++;
+                Score += GetScoreForNote(Combo, note.Accuracy);
+
+                PlayingSceneManager.Instance.UpdateAccuracyText(CurrentAccuracy());
+
+                //To make sure we dont catch 2 notes in 1 tap
+                break;
+            }
+        }
+    }
+
+    public GameObject NotePrefab;
 
     bool noUpdate = false;
 
@@ -65,54 +107,26 @@ public class NotesController : SingletonBehaviour<NotesController> {
     void Update ()
     {
         if (noUpdate) return;
+        if (Beatmap.CurrentlyLoaded == null) return;
         if (Beatmap.CurrentlyLoaded.AnyNotesLeft)
         {
             if (Conductor.Instance.Playing)
             {
                 if (Input.GetKeyDown(KeyCode.Space))
                 {
-                    for (int i = Beatmap.CurrentlyLoaded.PlayedNoteCount; i < Beatmap.CurrentlyLoaded.Notes.Length; i++)
-                    {
-                        if (Beatmap.CurrentlyLoaded.Notes[i].TimeToClick.Ms <= -AllowedTimeToClick)
-                            continue;
-                        if (Beatmap.CurrentlyLoaded.Notes[i].TimeToClick.Ms >= AllowedTimeToClick)
-                            break;
-
-                        Note note = Beatmap.CurrentlyLoaded.Notes[i];
-
-                        if (Conductor.Instance.Position >= note.time - (int)AllowedTimeToClick && note.slice == AimController.Instance.SelectedSlice)
-                        {
-                            //Calculate accuracy for note
-                            int accuracy = (int)(note.TimeToClick.Ms * (Beatmap.CurrentlyLoaded.AccMod / 15));
-
-                            note.clicked = true;
-                            note.trueAccuracy = accuracy;
-
-                            // Update the note in the list
-                            Beatmap.CurrentlyLoaded.Notes[Beatmap.CurrentlyLoaded.GetIndexForNote(note)] = note;
-                            Beatmap.CurrentlyLoaded.PlayedNoteCount++;
-
-                            Combo++;
-                            Score += GetScoreForNote(Combo, note.Accuracy);
-
-                            PlayingSceneManager.Instance.UpdateAccuracyText(CurrentAccuracy());
-
-                            //To make sure we dont catch 2 notes in 1 tap
-                            break;
-                        }
-                    }
+                    Click();
                 }
-                for (int i = Beatmap.CurrentlyLoaded.PlayedNoteCount; i < Beatmap.CurrentlyLoaded.Notes.Length; i++)
+                for (int i = Beatmap.CurrentlyLoaded.PlayedNotes.Count(); i < Beatmap.CurrentlyLoaded.Notes.Length; i++)
                 {
-                    if (Beatmap.CurrentlyLoaded.Notes[i].TimeToClick.Ms <= -AllowedTimeToClick)
+                    if (Beatmap.CurrentlyLoaded.Notes[i].TimeToClick.Ms <= -ShowTime)
                         continue;
-                    if (Beatmap.CurrentlyLoaded.Notes[i].TimeToClick.Ms >= AllowedTimeToClick)
+                    if (Beatmap.CurrentlyLoaded.Notes[i].TimeToClick.Ms >= ShowTime)
                         break;
 
                     Note note = Beatmap.CurrentlyLoaded.Notes[i];
                     if (!note.clicked && !note.generated)
                     {
-                        NoteObject noteObject = Instantiate(Resources.Load<GameObject>("Objects/Note")).GetComponent<NoteObject>();
+                        NoteObject noteObject = Instantiate(NotePrefab).GetComponent<NoteObject>();
                         noteObject.noteIndex = i;
                         note.generated = true;
                         Beatmap.CurrentlyLoaded.Notes[i] = note;
@@ -125,47 +139,25 @@ public class NotesController : SingletonBehaviour<NotesController> {
         else
         {
             StartCoroutine(Helper.FadeOut(Conductor.Instance.Player, 1));
-            SceneManager.sceneLoaded += UnloadPlayingScene;
-            Initiate.Fade("ResultsScene", Color.black, 1);
-            SceneManager.sceneLoaded -= UnloadPlayingScene;
-
-            result.resultNotes = new ResultNote[Beatmap.CurrentlyLoaded.Notes.Length];
-            for(int i = 0; i < Beatmap.CurrentlyLoaded.Notes.Length; i++)
-            {
-                Note note = Beatmap.CurrentlyLoaded.Notes[i];
-                result.resultNotes[i] = (ResultNote)note;
-            }
-            result.totalAccuracy = CurrentAccuracy();
-            result.highestCombo = highestCombo;
-            result.score = Score;
+            InitResults();
+            PlayingSceneManager.GotoResult();
 
             noUpdate = true;
         }
     }
 
-    private void UnloadPlayingScene(Scene arg0, LoadSceneMode arg1)
+    public void InitResults()
     {
-        Scene resultScene = SceneManager.GetSceneByName("ResultsScene");
-
-        ResultSceneManager resultSceneManager = null;
-
-        foreach (GameObject obj in resultScene.GetRootGameObjects())
+        Result result = PlayingSceneManager.Instance.result;
+        result.resultNotes = new ResultNote[Beatmap.CurrentlyLoaded.Notes.Length];
+        for (int i = 0; i < Beatmap.CurrentlyLoaded.Notes.Length; i++)
         {
-            ResultSceneManager comp;
-            if ((comp = obj.GetComponent<ResultSceneManager>()) != null)
-            {
-                resultSceneManager = comp;
-            }
+            Note note = Beatmap.CurrentlyLoaded.Notes[i];
+            result.resultNotes[i] = (ResultNote)note;
         }
-
-        if (resultSceneManager == null)
-        {
-            throw new Exception("No scene manager found");
-        }
-
-        SceneManager.UnloadSceneAsync("PlayingScene").completed += delegate
-        {
-            resultSceneManager.Load(result);
-        };
+        result.totalAccuracy = CurrentAccuracy();
+        result.highestCombo = highestCombo;
+        result.score = Score;
+        PlayingSceneManager.Instance.result = result;
     }
 }

@@ -26,6 +26,7 @@ public class ResultSceneManager : SingletonBehaviour<ResultSceneManager> {
 
     public void Load(Result result)
     {
+        Debug.Log("Loading results");
         this.result = result;
 
         accuracyListText = GameObject.Find("AccuracyListText").GetComponent<TextMeshProUGUI>();

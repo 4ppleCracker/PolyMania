@@ -45,7 +45,7 @@ public struct Note
 
     public override string ToString()
     {
-        return $"Time = {time}, slice = {slice}, clicked = {clicked}, generated = {generated}, accuracy = {trueAccuracy}";
+        return $"Time = {time}, slice = {slice}";
     }
 
     public override bool Equals(object obj)

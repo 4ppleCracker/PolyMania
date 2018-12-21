@@ -7,27 +7,33 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
 
-class BeatmapStoreInfo
+public class BeatmapStoreInfo
 {
+    public string SongName;
+    public string DifficultyName;
     public string SongPath;
     public string MapPath;
+
+    public Beatmap GetBeatmap() {
+        return BeatmapStore.DeserializeBeatmap(MapPath);
+    }
 }
 
 static class BeatmapStore
 {
-    public const string SongPath = "Songs";
-    public static BeatmapStoreInfo[] Beatmaps;
+    public const string DefaultSongPath = "Songs";
+    public static List<BeatmapStoreInfo> Beatmaps;
 
-    private static Beatmap DeserializeBeatmap(string fileName)
+    public static Beatmap DeserializeBeatmap(string fileName)
     {
-        using (FileStream stream = new FileStream(fileName, FileMode.Open, FileAccess.Write, FileShare.None))
+        using (FileStream stream = new FileStream(fileName, FileMode.Open, FileAccess.Read, FileShare.None))
         {
             return (Beatmap)(new XmlSerializer(typeof(Beatmap)).Deserialize(stream));
         }
     }
-    private static void SerializeBeatmap(Beatmap map, string fileName)
+    public static void SerializeBeatmap(Beatmap map, string fileName)
     {
-        if (new DirectoryInfo(map.SongPath).Parent.FullName != Path.Combine(Directory.GetCurrentDirectory(), SongPath))
+        if (new DirectoryInfo(map.SongPath).Parent.FullName != Path.Combine(Directory.GetCurrentDirectory(), DefaultSongPath))
         {
             //Move song to local if its not
 
@@ -39,50 +45,40 @@ static class BeatmapStore
         }
     }
 
-    public static void LoadSong(string songPath, bool resizeStorage=true)
+    public static void LoadSong(string songPath)
     {
-        int i = 0;
         foreach(string file in Directory.EnumerateFiles(songPath))
         {
             if(file.EndsWith(".pmb"))
             {
                 Beatmap beatmap = DeserializeBeatmap(file);
-                BeatmapStoreInfo beatmapStoreInfo = new BeatmapStoreInfo() { MapPath = file, SongPath = beatmap.SongPath };
-                if (resizeStorage)
-                {
-                    BeatmapStoreInfo[] newBeatmaps = new BeatmapStoreInfo[(Beatmaps?.Length ?? 0) + 1];
-                    if (Beatmaps != null)
-                    {
-                        Array.Copy(Beatmaps, newBeatmaps, Beatmaps.Length);
-                    }
-                    newBeatmaps[newBeatmaps.Length] = beatmapStoreInfo;
-                    Beatmaps = newBeatmaps;
-                }
-                else
-                {
-                    if (Beatmaps == null)
-                        Beatmaps = new BeatmapStoreInfo[1];
-                    Beatmaps[i] = beatmapStoreInfo;
-                }
-                i++;
+                BeatmapStoreInfo beatmapStoreInfo = new BeatmapStoreInfo() {
+                    MapPath = file,
+                    SongPath = beatmap.SongPath,
+                    SongName = beatmap.SongName,
+                    DifficultyName = beatmap.DifficultyName
+                };
+                if (Beatmaps == null)
+                    Beatmaps = new List<BeatmapStoreInfo>();
+                Beatmaps.Add(beatmapStoreInfo);
             }
         }
     }
     public static void AddSong(Beatmap map)
     {
-        string targetDirectory = Path.Combine(SongPath, map.SongName) + "/";
+        string targetDirectory = Path.Combine(DefaultSongPath, map.SongName) + "/";
         if(!Directory.Exists(targetDirectory))
             Directory.CreateDirectory(targetDirectory);
         string file = Path.Combine(targetDirectory, map.SongName + "[" + map.DifficultyName + "]" + ".pmb");
         SerializeBeatmap(map, file);
     }
-    public static void LoadAll(string basePath=SongPath)
+    public static void LoadAll(string basePath=DefaultSongPath)
     {
         var songPaths = Directory.EnumerateDirectories(basePath);
-        Beatmaps = new BeatmapStoreInfo[songPaths.Count()];
+        Beatmaps = new List<BeatmapStoreInfo>(songPaths.Count());
         foreach (string songPath in songPaths)
         {
-            LoadSong(songPath, false);
+            LoadSong(songPath);
         }
     }
 };

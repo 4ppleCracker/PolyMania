@@ -1,12 +1,14 @@
 ﻿using NAudio.Wave;
+using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Runtime.Serialization;
 using System.Xml.Serialization;
 using UnityEditor;
 using UnityEngine;
 
-public class Beatmap : ScriptableObject
+public class Beatmap
 
     ////Loaded data
 {
@@ -29,18 +31,14 @@ public class Beatmap : ScriptableObject
     public float SpeedMod;
     public int Bpm;
 
-    ////Other data
-
-    [XmlIgnore]
-    public int PlayedNoteCount = 0;
-
     //Accessors
-    public bool AnyNotesLeft => PlayedNoteCount < Notes.Length;
+    //FUTURE ME, DO NOT CHANGE THIS, ITS CORRECT, 3 <= 3 is true, meaning there are notes left when there arent
+    public bool AnyNotesLeft => PlayedNotes.Count() < Notes.Length;
 
     //Methods
     public Note GetLatestForSlice(int slice)
     {
-        for (int i = CurrentlyLoaded.PlayedNoteCount; i < CurrentlyLoaded.Notes.Length; i++)
+        for (int i = 0; i < CurrentlyLoaded.Notes.Length; i++)
         {
             Note note = CurrentlyLoaded.Notes[i];
             if (note.slice == slice)
@@ -52,7 +50,7 @@ public class Beatmap : ScriptableObject
     }
     public int GetIndexForNote(Note note)
     {
-        for (int i = CurrentlyLoaded.PlayedNoteCount; i < CurrentlyLoaded.Notes.Length; i++)
+        for (int i = 0; i < CurrentlyLoaded.Notes.Length; i++)
         {
             Note tempNote = CurrentlyLoaded.Notes[i];
             if (tempNote == note)
@@ -60,14 +58,14 @@ public class Beatmap : ScriptableObject
                 return i;
             }
         }
-        throw new System.Exception();
+        throw new System.Exception("Couldnt find note " + note);
     }
+    public IEnumerable<Note> PlayedNotes => Notes.Where(note => note.clicked);
 
     //Loading
     public static Beatmap CurrentlyLoaded { get; private set; }
     public static void Load(Beatmap map)
     {
-        map.PlayedNoteCount = 0;
         List<Note> newNotes = new List<Note>();
         foreach(Note note in map.Notes)
         {
@@ -75,7 +73,6 @@ public class Beatmap : ScriptableObject
         }
         map.Notes = newNotes.ToArray();
         CurrentlyLoaded = map;
-        PolyMesh.Instance.Generate(PolyMesh.Instance.Radius, map.SliceCount);
 
         Debug.Log($"Loaded song {map.SongName}");
     }
@@ -202,9 +199,12 @@ public class Beatmap : ScriptableObject
             {
                 return GetMp3Audio(fileInfo.Name, data);
             }
+            case ".wav":
+                return WavUtility.ToAudioClip(data);
             default:
             {
-                throw new System.Exception(fileInfo.Extension + " file type is not yet supported");
+                Debug.Log(fileInfo.Extension + " file type is not yet supported");
+                return null;
             }
         }
     }
@@ -235,7 +235,7 @@ public class Beatmap : ScriptableObject
 
         uint sliceWidth = 512 / sliceCount;
         List<Note> notes = new List<Note>();
-        foreach(var hitObject in osuBeatmap.HitObjects)
+        foreach (var hitObject in osuBeatmap.HitObjects)
         {
             //TODO For the 7K + 1 mode, the column index is 1 + x / (512 / 7), leaving the column 0 for the specials.
             uint slice = (uint)(hitObject.Position.X / sliceWidth);
@@ -248,15 +248,18 @@ public class Beatmap : ScriptableObject
         osuFilePath = new FileInfo(osuFilePath).Directory.FullName;
 
         //TODO beatmap.EventsSection.BackgroundImage ?
-        Beatmap beatmap = CreateInstance<Beatmap>();
-        beatmap.SliceCount = sliceCount;
-        beatmap.SongName = osuBeatmap.MetadataSection.Title;
-        beatmap.SongPath = Path.Combine(osuFilePath, osuBeatmap.GeneralSection.AudioFilename);
+        Beatmap beatmap = new Beatmap() {
+            SliceCount = sliceCount,
+            SongName = osuBeatmap.MetadataSection.Title,
+            SongPath = Path.Combine(osuFilePath, osuBeatmap.GeneralSection.AudioFilename),
+            Notes = notes.ToArray(),
+            BackgroundPath = Path.Combine(osuFilePath, osuBeatmap.EventsSection.BackgroundImage),
+            DifficultyName = osuBeatmap.MetadataSection.Version,
+            AccMod = osuBeatmap.DifficultySection.OverallDifficulty,
+            SpeedMod = osuBeatmap.DifficultySection.ApproachRate
+        };
         beatmap.Song = GetAudio(beatmap.SongPath);
-        beatmap.Notes = notes.ToArray();
-        beatmap.BackgroundPath = osuBeatmap.EventsSection.BackgroundImage;
-        beatmap.BackgroundImage = LoadPNG(Path.Combine(osuFilePath,beatmap.BackgroundPath));
-        beatmap.DifficultyName = osuBeatmap.MetadataSection.Version;
+        beatmap.BackgroundImage = LoadPNG(beatmap.BackgroundPath);
         return beatmap;
     }
 
@@ -272,12 +275,20 @@ public class Beatmap : ScriptableObject
         if (loadPath == "") return; //Pressed cancel
         Beatmap beatmap = FromMania(loadPath);
 
-        string path = Path.Combine(BeatmapStore.SongPath, beatmap.SongName);
+        string path = Path.Combine(BeatmapStore.DefaultSongPath, beatmap.SongName);
+
+        //Create the songs directory if it doesnt exist
+        if (!Directory.Exists(path))
+            Directory.CreateDirectory(path);
 
         string songPath = Path.Combine(path, "song.wav");
         if (!File.Exists(songPath))
         {
-            SavWav.Save(songPath, beatmap.Song);
+            byte[] wavData = WavUtility.FromAudioClip(beatmap.Song);
+            using(FileStream stream = new FileStream(songPath, FileMode.Create, FileAccess.Write))
+            {
+                stream.Write(wavData, 0, wavData.Length);
+            }
         }
         beatmap.SongPath = songPath;
 
