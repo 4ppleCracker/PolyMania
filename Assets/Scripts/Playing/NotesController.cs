@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections;
 using System.Linq;
+using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -42,10 +44,15 @@ public class NotesController : SingletonBehaviour<NotesController> {
 
     public int CurrentAccuracy()
     {
-        if (Beatmap.CurrentlyLoaded.PlayedNotes.Count() == 0)
-            return 100;
-        int totalAcc = 0;
+        //Amount of notes hit
         int total = Beatmap.CurrentlyLoaded.PlayedNotes.Count();
+
+        //If you have yet hit any notes, you get 100% accuracy
+        if (total == 0)
+            return 100;
+
+        //Gets the total accuracy percentages and divides by total notes hit to get the average accuracy
+        int totalAcc = 0;
         for (int i = 0; i < total; i++)
         {
             totalAcc += Beatmap.CurrentlyLoaded.Notes[i].Accuracy.ToPercent();
@@ -53,6 +60,7 @@ public class NotesController : SingletonBehaviour<NotesController> {
         return totalAcc / total;
     }
 
+    public GameObject NotePrefab;
     public Vector3 NoteSize;
 
     // Use this for initialization
@@ -61,6 +69,7 @@ public class NotesController : SingletonBehaviour<NotesController> {
         Helper.SetBackgroundImage(Beatmap.CurrentlyLoaded.BackgroundImage);
         Conductor.Instance.Play(Beatmap.CurrentlyLoaded.Song, 1000, 1000);
 
+        //Load fields
         NotePrefab = Resources.Load<GameObject>("Objects/Note");
         NoteSize = NotePrefab.GetComponent<MeshFilter>().sharedMesh.bounds.max;
     }
@@ -69,19 +78,14 @@ public class NotesController : SingletonBehaviour<NotesController> {
     {
         for (int i = 0; i < Beatmap.CurrentlyLoaded.Notes.Length; i++)
         {
-            //Positive = early, negative = late
-            if ((Beatmap.CurrentlyLoaded.Notes[i].TimeToClick.Ms >= AllowedTimeToClick))
-                continue;
-            if ((Beatmap.CurrentlyLoaded.Notes[i].TimeToClick.Ms <= -TimeToMiss))
-                continue;
-
             Note note = Beatmap.CurrentlyLoaded.Notes[i];
 
-            if (note.slice == AimController.Instance.SelectedSlice)
+            if (note.slice == AimController.Instance.SelectedSlice && Conductor.Instance.Position.IsWithin(note.HitTimeFrame) && !note.clicked)
             {
                 //Calculate accuracy for note
                 int accuracy = (int)(note.TimeToClick.Ms * (Beatmap.CurrentlyLoaded.AccMod / 15));
 
+                //Set the data
                 note.clicked = true;
                 note.trueAccuracy = accuracy;
 
@@ -99,8 +103,6 @@ public class NotesController : SingletonBehaviour<NotesController> {
         }
     }
 
-    public GameObject NotePrefab;
-
     bool noUpdate = false;
 
     // Update is called once per frame
@@ -116,14 +118,13 @@ public class NotesController : SingletonBehaviour<NotesController> {
                 {
                     Click();
                 }
-                for (int i = Beatmap.CurrentlyLoaded.PlayedNotes.Count(); i < Beatmap.CurrentlyLoaded.Notes.Length; i++)
+                for (int i = 0; i < Beatmap.CurrentlyLoaded.Notes.Length; i++)
                 {
-                    if (Beatmap.CurrentlyLoaded.Notes[i].TimeToClick.Ms <= -ShowTime)
-                        continue;
-                    if (Beatmap.CurrentlyLoaded.Notes[i].TimeToClick.Ms >= ShowTime)
-                        break;
-
                     Note note = Beatmap.CurrentlyLoaded.Notes[i];
+
+                    if (Conductor.Instance.Position <= note.time.SubtractMs((int)ShowTime))
+                        continue;
+
                     if (!note.clicked && !note.generated)
                     {
                         NoteObject noteObject = Instantiate(NotePrefab).GetComponent<NoteObject>();

@@ -33,12 +33,6 @@ static class BeatmapStore
     }
     public static void SerializeBeatmap(Beatmap map, string fileName)
     {
-        if (new DirectoryInfo(map.SongPath).Parent.FullName != Path.Combine(Directory.GetCurrentDirectory(), DefaultSongPath))
-        {
-            //Move song to local if its not
-
-        }
-
         using (FileStream stream = new FileStream(fileName, FileMode.OpenOrCreate, FileAccess.Write))
         {
             new XmlSerializer(typeof(Beatmap)).Serialize(stream, map);
@@ -66,10 +60,10 @@ static class BeatmapStore
     }
     public static void AddSong(Beatmap map)
     {
-        string targetDirectory = Path.Combine(DefaultSongPath, map.SongName) + "/";
+        string targetDirectory = Path.Combine(DefaultSongPath, map.SanitizedName) + "/";
         if(!Directory.Exists(targetDirectory))
             Directory.CreateDirectory(targetDirectory);
-        string file = Path.Combine(targetDirectory, map.SongName + "[" + map.DifficultyName + "]" + ".pmb");
+        string file = Path.Combine(targetDirectory, Helper.SanitizeString(map.DifficultyName) + ".pmb");
         SerializeBeatmap(map, file);
     }
     public static void LoadAll(string basePath=DefaultSongPath)

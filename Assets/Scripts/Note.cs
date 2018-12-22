@@ -1,6 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Xml.Serialization;
+
+public class TimeFrame
+{
+    public Time start, end;
+
+    public TimeFrame(Time start, Time end)
+    {
+        this.start = start;
+        this.end = end;
+    }
+}
 
 [Serializable]
 public struct Note
@@ -37,6 +49,12 @@ public struct Note
         }
         set {
             m_accuracy = value;
+        }
+    }
+    [XmlIgnore]
+    public TimeFrame HitTimeFrame {
+        get {
+            return new TimeFrame(time.SubtractMs((int)NotesController.AllowedTimeToClick), time.AddMs((int)NotesController.TimeToMiss));
         }
     }
 

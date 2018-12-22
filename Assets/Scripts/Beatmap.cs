@@ -34,6 +34,7 @@ public class Beatmap
     //Accessors
     //FUTURE ME, DO NOT CHANGE THIS, ITS CORRECT, 3 <= 3 is true, meaning there are notes left when there arent
     public bool AnyNotesLeft => PlayedNotes.Count() < Notes.Length;
+    public string SanitizedName => Helper.SanitizeString(SongName);
 
     //Methods
     public Note GetLatestForSlice(int slice)
@@ -46,7 +47,7 @@ public class Beatmap
                 return note;
             }
         }
-        throw new System.Exception();
+        throw new Exception();
     }
     public int GetIndexForNote(Note note)
     {
@@ -58,8 +59,12 @@ public class Beatmap
                 return i;
             }
         }
-        throw new System.Exception("Couldnt find note " + note);
+        throw new Exception("Couldnt find note " + note);
     }
+    /// <summary>
+    /// IEnumerable which contains the notes that have been clicked/played already.
+    /// Useful for getting amount of notes clicked using Linq's Count method
+    /// </summary>
     public IEnumerable<Note> PlayedNotes => Notes.Where(note => note.clicked);
 
     //Loading
@@ -67,9 +72,18 @@ public class Beatmap
     public static void Load(Beatmap map)
     {
         List<Note> newNotes = new List<Note>();
+        List<Note> toExclude = new List<Note>();
         foreach(Note note in map.Notes)
         {
-            newNotes.Add(new Note(note.time, note.slice));
+            //Clean up jumps
+            var jumpPairs = map.Notes.Where(other => other.slice != note.slice && other.time == note.time);
+            if (jumpPairs.Count() > 0)
+            {
+                toExclude.AddRange(jumpPairs);
+            }
+
+            if(!toExclude.Contains(note))
+                newNotes.Add(new Note(note.time, note.slice));
         }
         map.Notes = newNotes.ToArray();
         CurrentlyLoaded = map;
@@ -277,7 +291,7 @@ public class Beatmap
         if (loadPath == "") return; //Pressed cancel
         Beatmap beatmap = FromMania(loadPath);
 
-        string path = Path.Combine(BeatmapStore.DefaultSongPath, beatmap.SongName);
+        string path = Path.Combine(BeatmapStore.DefaultSongPath, beatmap.SanitizedName);
 
         //Create the songs directory if it doesnt exist
         if (!Directory.Exists(path))

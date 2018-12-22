@@ -49,7 +49,7 @@ public class NoteObject : MonoBehaviour {
         transform.rotation = Quaternion.Euler(0, 0, GetDegrees());
 
         //If note's TimeToClick is later than TimeToMiss, kill the note and set missed to true
-        if (note.TimeToClick.Ms <= -NotesController.TimeToMiss)
+        if (Conductor.Instance.Position.IsAfter(note.HitTimeFrame))
         {
             note.Accuracy = new Accuracy(AccuracyType.Miss, true);
             note.clicked = true;

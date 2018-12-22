@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -47,5 +48,9 @@ public static class Helper
         }
 
         after?.Invoke();
+    }
+    public static string SanitizeString(string str)
+    {
+        return new string(str.Where(char.IsLetterOrDigit).ToArray());
     }
 }

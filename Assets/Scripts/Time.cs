@@ -14,6 +14,32 @@ public struct Time : IComparable<Time>, IEquatable<Time>
     {
         Ms = (int)(sec * 1000);
     }
+    public Time(Time time)
+    {
+        Ms = time.Ms;
+    }
+
+    public Time AddMs(int ms)
+    {
+        return new Time(Ms + ms);
+    }
+    public Time SubtractMs(int ms)
+    {
+        return new Time(Ms - ms);
+    }
+
+    public bool IsBefore(TimeFrame frame)
+    {
+        return this < frame.start;
+    }
+    public bool IsAfter(TimeFrame frame)
+    {
+        return this > frame.end;
+    }
+    public bool IsWithin(TimeFrame frame)
+    {
+        return this <= frame.end && this >= frame.start;
+    }
 
     public int CompareTo(Time obj) => Ms.CompareTo(obj.Ms);
     public bool Equals(Time other) => Ms == other.Ms;

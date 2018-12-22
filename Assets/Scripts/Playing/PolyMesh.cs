@@ -46,6 +46,8 @@ public class PolyMesh : SingletonBehaviour<PolyMesh>
         return new Vector3(radius * Mathf.Sin((2 * Mathf.PI * i) / n), radius * Mathf.Cos((2 * Mathf.PI * i) / n), 0f);
     }
 
+    public Vector3[] verticies;
+
     public Mesh mesh;
 
     public void Generate(float radius, uint n)
@@ -60,8 +62,7 @@ public class PolyMesh : SingletonBehaviour<PolyMesh>
         meshFilter.mesh = mesh;
 
         //Verticies
-        //Double the vertices for texturing individual triangles
-        Vector3[] verticies = new Vector3[n*2+1];
+        verticies = new Vector3[n*2+1];
         for (int i = 0; i < n; i++)
         {
             verticies[i] = PosForVertices(i, (int)n, radius);

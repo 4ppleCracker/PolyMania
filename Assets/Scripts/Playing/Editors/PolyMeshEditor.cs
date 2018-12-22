@@ -1,4 +1,5 @@
 ﻿using UnityEditor;
+using UnityEngine;
 
 #if UNITY_EDITOR
 [CustomEditor(typeof(PolyMesh))]
@@ -18,6 +19,9 @@ public class PolyMeshEditor : Editor<PolyMesh>
 
         int _count = EditorGUILayout.IntField("Count", (count = (int)PolyMesh.Instance.Count));
         float _radius = EditorGUILayout.FloatField("Radius", radius = PolyMesh.Instance.Radius);
+
+        foreach (Vector3 vertice in target.verticies)
+            EditorGUILayout.Vector2Field("  ", vertice);
 
         if (_count != count || _radius != radius)
         {
