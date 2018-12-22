@@ -3,6 +3,8 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+//Currently does not properly work, need to change algorithm
+
 public class AimController : SingletonBehaviour<AimController> {
 
     private int m_selectedSlice = 0;
@@ -10,8 +12,7 @@ public class AimController : SingletonBehaviour<AimController> {
     /// 0 indexed
     /// </summary>
     public int SelectedSlice { get { return m_selectedSlice; } private set { m_selectedSlice = value; PolyMesh.Instance.UpdateMesh(); } }
-	
-	// Update is called once per frame
+
 	void Update () {
         if (Beatmap.CurrentlyLoaded != null)
         {
