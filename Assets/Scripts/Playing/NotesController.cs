@@ -8,7 +8,7 @@ using UnityEngine.SceneManagement;
 public class NotesController : SingletonBehaviour<NotesController> {
 
     public static float AllowedTimeToClick => 3000 / Beatmap.CurrentlyLoaded.AccMod;
-    public static float ShowTime = 4000 / Beatmap.CurrentlyLoaded.SpeedMod;
+    public static float ShowTime => 4000 / Beatmap.CurrentlyLoaded.SpeedMod;
     public static float TimeToMiss => 3000 / Beatmap.CurrentlyLoaded.AccMod;
 
     [SerializeField]

@@ -268,6 +268,8 @@ public class Beatmap
 
     }
 
+#if UNITY_EDITOR
+
     [MenuItem("Beatmap/Import Mania Map")]
     static void ImportManiaMap()
     {
@@ -308,4 +310,7 @@ public class Beatmap
 
         BeatmapStore.AddSong(beatmap);
     }
+
+#endif
+
 }
