@@ -7,14 +7,16 @@ using System.IO;
 
 public static class Helper
 {
-    public static void SetBackgroundImage(Texture2D texture)
+    public static void SetBackgroundImage(Texture2D texture, float alpha = 1)
     {
         Image image = GameObject.Find("BackgroundImage").GetComponent<Image>();
 
         if (texture != null)
         {
             image.sprite = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), Vector2.zero);
-            image.color = Color.white;
+            Color color = Color.white;
+            color.a = alpha;
+            image.color = color;
         } else
         {
             image.color = Color.clear;

@@ -43,6 +43,6 @@ public class ResultSceneManager : SingletonBehaviour<ResultSceneManager> {
 
         highestComboText.text = "Highest Combo: " + result.highestCombo + "x";
 
-        Helper.SetBackgroundImage(Beatmap.CurrentlyLoaded.BackgroundImage);
+        Helper.SetBackgroundImage(Beatmap.CurrentlyLoaded.BackgroundImage, 0.25f);
     }
 }

@@ -36,7 +36,7 @@ class SongSelectManager : SingletonBehaviour<SongSelectManager>
             item.SelectedChange(true);
             BeatmapStoreInfo info = item.GetInfo();
             Texture2D background = Helper.LoadPNG(info.BackgroundPath);
-            Helper.SetBackgroundImage(background);
+            Helper.SetBackgroundImage(background, 0.75f);
 
         }
     }
