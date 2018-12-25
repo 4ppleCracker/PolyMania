@@ -4,10 +4,15 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
+public struct Triangle
+{
+    public Vector2 a, b, c;
+}
+
 public class PolyMesh : SingletonBehaviour<PolyMesh>
 {
-    public uint Count { get; private set; } = 4;
-    public float Radius { get; private set; } = 4f;
+    public uint Count = 4;
+    public float Radius = 4f;
 
     public const int MINIMUM_COUNT = 3;
 
@@ -47,6 +52,21 @@ public class PolyMesh : SingletonBehaviour<PolyMesh>
     }
 
     public Vector3[] verticies;
+
+    public Triangle[] GetRealTriangles()
+    {
+        Triangle[] triangles = new Triangle[Count];
+        for(int i = 0; i < Count; i++)
+        {
+            triangles[i] = new Triangle()
+            {
+                a = verticies[i],
+                b = verticies[(i + 1) % 4],
+                c = new Vector2(0, 0)
+            };
+        }
+        return triangles;
+    }
 
     public Mesh mesh;
 
