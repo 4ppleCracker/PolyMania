@@ -32,7 +32,12 @@ class SongSelectManager : SingletonBehaviour<SongSelectManager>
 
             //Set new index and call select the item
             m_selected = value;
-            SongListContent.transform.GetChild(value).GetComponent<SongListItem>().SelectedChange(true);
+            SongListItem item = SongListContent.transform.GetChild(value).GetComponent<SongListItem>();
+            item.SelectedChange(true);
+            BeatmapStoreInfo info = item.GetInfo();
+            Texture2D background = Helper.LoadPNG(info.BackgroundPath);
+            Helper.SetBackgroundImage(background);
+
         }
     }
 

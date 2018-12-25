@@ -11,8 +11,8 @@ public struct Triangle
 
 public class PolyMesh : SingletonBehaviour<PolyMesh>
 {
-    public uint Count = 4;
-    public float Radius = 4f;
+    public uint Count = 6;
+    public float Radius = 5f;
 
     public const int MINIMUM_COUNT = 3;
 
@@ -36,9 +36,6 @@ public class PolyMesh : SingletonBehaviour<PolyMesh>
     private void Start()
     {
         Skin.CurrentlyLoadedSkin.Apply();
-#if UNITY_EDITOR
-        Count = Beatmap.CurrentlyLoaded.SliceCount;
-#endif
     }
 
     public void UpdateMesh()
@@ -61,7 +58,7 @@ public class PolyMesh : SingletonBehaviour<PolyMesh>
             triangles[i] = new Triangle()
             {
                 a = verticies[i],
-                b = verticies[(i + 1) % 4],
+                b = verticies[(i + 1) % Count],
                 c = new Vector2(0, 0)
             };
         }

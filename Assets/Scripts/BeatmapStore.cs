@@ -13,6 +13,7 @@ public class BeatmapStoreInfo
     public string DifficultyName;
     public string SongPath;
     public string MapPath;
+    public string BackgroundPath;
 
     public Beatmap GetBeatmap() {
         return BeatmapStore.DeserializeBeatmap(MapPath);
@@ -50,7 +51,8 @@ static class BeatmapStore
                     MapPath = file,
                     SongPath = beatmap.SongPath,
                     SongName = beatmap.SongName,
-                    DifficultyName = beatmap.DifficultyName
+                    DifficultyName = beatmap.DifficultyName,
+                    BackgroundPath = beatmap.BackgroundPath
                 };
                 if (Beatmaps == null)
                     Beatmaps = new List<BeatmapStoreInfo>();

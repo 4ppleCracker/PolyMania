@@ -3,6 +3,7 @@ using System.Collections;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
+using System.IO;
 
 public static class Helper
 {
@@ -52,5 +53,18 @@ public static class Helper
     public static string SanitizeString(string str)
     {
         return new string(str.Where(char.IsLetterOrDigit).ToArray());
+    }
+    public static Texture2D LoadPNG(string filePath)
+    {
+
+        Texture2D tex = null;
+
+        if (File.Exists(filePath))
+        {
+            byte[] fileData = File.ReadAllBytes(filePath);
+            tex = new Texture2D(2, 2);
+            tex.LoadImage(fileData);
+        }
+        return tex;
     }
 }

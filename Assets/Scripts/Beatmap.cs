@@ -88,6 +88,9 @@ public class Beatmap
         map.Notes = newNotes.ToArray();
         CurrentlyLoaded = map;
 
+        map.Song = GetAudio(map.SongPath);
+        map.BackgroundImage = Helper.LoadPNG(map.BackgroundPath);
+
         Debug.Log($"Loaded song {map.SongName}");
     }
 
@@ -223,20 +226,6 @@ public class Beatmap
         }
     }
 
-    public static Texture2D LoadPNG(string filePath)
-    {
-
-        Texture2D tex = null;
-
-        if (File.Exists(filePath))
-        {
-            byte[] fileData = File.ReadAllBytes(filePath);
-            tex = new Texture2D(2, 2);
-            tex.LoadImage(fileData);
-        }
-        return tex;
-    }
-
     public static Beatmap FromMania(string osuFilePath)
     {
         var osuBeatmap = OsuParsers.Parser.ParseBeatmap(osuFilePath);
@@ -272,8 +261,6 @@ public class Beatmap
             AccMod = osuBeatmap.DifficultySection.OverallDifficulty,
             SpeedMod = osuBeatmap.DifficultySection.ApproachRate
         };
-        beatmap.Song = GetAudio(beatmap.SongPath);
-        beatmap.BackgroundImage = LoadPNG(beatmap.BackgroundPath);
         return beatmap;
     }
 
@@ -300,7 +287,8 @@ public class Beatmap
         string songPath = Path.Combine(path, "song.wav");
         if (!File.Exists(songPath))
         {
-            byte[] wavData = WavUtility.FromAudioClip(beatmap.Song);
+            AudioClip song = GetAudio(beatmap.SongPath);
+            byte[] wavData = WavUtility.FromAudioClip(song);
             using(FileStream stream = new FileStream(songPath, FileMode.Create, FileAccess.Write))
             {
                 stream.Write(wavData, 0, wavData.Length);
@@ -313,7 +301,8 @@ public class Beatmap
             string bgPath = Path.Combine(path, "bg.png");
             if (!File.Exists(bgPath))
             {
-                byte[] bg = beatmap.BackgroundImage.EncodeToPNG();
+                Texture2D tex = Helper.LoadPNG(beatmap.BackgroundPath);
+                byte[] bg = tex.EncodeToPNG();
                 using (FileStream stream = new FileStream(bgPath, FileMode.Create, FileAccess.Write))
                 {
                     stream.Write(bg, 0, bg.Length);

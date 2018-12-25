@@ -30,18 +30,15 @@ public class AimController : SingletonBehaviour<AimController> {
     }
 
     void Update () {
-        if (Beatmap.CurrentlyLoaded != null)
+        Vector2 mousePosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+        Triangle[] tris = PolyMesh.Instance.GetRealTriangles();
+        for(int i = 0; i < tris.Length; i++)
         {
-            Vector2 mousePosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-            Triangle[] tris = PolyMesh.Instance.GetRealTriangles();
-            for(int i = 0; i < tris.Length; i++)
+            Triangle tri = tris[i];
+            if (PointInTriangle(mousePosition, tri.a, tri.b, tri.c))
             {
-                Triangle tri = tris[i];
-                if (PointInTriangle(mousePosition, tri.a, tri.b, tri.c))
-                {
-                    SelectedSlice = i;
-                    break;
-                }
+                SelectedSlice = i;
+                break;
             }
         }
     }

@@ -66,8 +66,11 @@ public class NotesController : SingletonBehaviour<NotesController> {
     // Use this for initialization
     public void Start ()
     {
-        Helper.SetBackgroundImage(Beatmap.CurrentlyLoaded.BackgroundImage);
-        Conductor.Instance.Play(Beatmap.CurrentlyLoaded.Song, 1000, 1000);
+        if (Beatmap.CurrentlyLoaded != null)
+        {
+            Helper.SetBackgroundImage(Beatmap.CurrentlyLoaded.BackgroundImage);
+            Conductor.Instance.Play(Beatmap.CurrentlyLoaded.Song, 1000, 1000);
+        }
 
         //Load fields
         NotePrefab = Resources.Load<GameObject>("Objects/Note");

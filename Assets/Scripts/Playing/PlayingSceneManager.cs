@@ -33,8 +33,15 @@ public class PlayingSceneManager : SingletonBehaviour<PlayingSceneManager> {
         UpdateAccuracyText(100);
         UpdateComboText(0);
         UpdateScoreText(0);
-        Beatmap.CurrentlyLoaded.Song = Beatmap.GetAudio(Beatmap.CurrentlyLoaded.SongPath);
-        PolyMesh.Instance.Generate(PolyMesh.Instance.Radius, Beatmap.CurrentlyLoaded.SliceCount);
+        if (Beatmap.CurrentlyLoaded != null)
+        {
+            Beatmap.CurrentlyLoaded.Song = Beatmap.GetAudio(Beatmap.CurrentlyLoaded.SongPath);
+            Helper.SetBackgroundImage(Beatmap.CurrentlyLoaded.BackgroundImage);
+        } else
+        {
+            Debug.Log("No beatmap is loaded");
+        }
+        PolyMesh.Instance.Generate(PolyMesh.Instance.Radius, Beatmap.CurrentlyLoaded?.SliceCount ?? PolyMesh.Instance.Count);
     }
 
     public Result result = new Result();
