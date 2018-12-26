@@ -9,11 +9,11 @@ public static class Helper
 {
     public static void SetBackgroundImage(Texture2D texture, float alpha = 1)
     {
-        Image image = GameObject.Find("BackgroundImage").GetComponent<Image>();
+        RawImage image = GameObject.Find("BackgroundImage").GetComponent<RawImage>();
 
         if (texture != null)
         {
-            image.sprite = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), Vector2.zero);
+            image.texture = texture;
             Color color = Color.white;
             color.a = alpha;
             image.color = color;

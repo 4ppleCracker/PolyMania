@@ -15,6 +15,8 @@ class SongSelectManager : SingletonBehaviour<SongSelectManager>
     public int YOffset = 25;
     public int YSpacing = 25;
 
+    private Texture2D background = null;
+
     [SerializeField]
     private int m_selected = -1;
     public int Selected {
@@ -26,18 +28,37 @@ class SongSelectManager : SingletonBehaviour<SongSelectManager>
             if (value < 0 || value >= SongListContent.transform.childCount)
                 return;
 
+            BeatmapStoreInfo oldInfo = null;
+
             //So you dont deselect out of bounds items
             if (m_selected >= 0 && m_selected < SongListContent.transform.childCount)
-                SongListContent.transform.GetChild(m_selected).GetComponent<SongListItem>().SelectedChange(false);
+            {
+                SongListItem old = SongListContent.transform.GetChild(m_selected).GetComponent<SongListItem>();
 
-            //Set new index and call select the item
+                //deselect old selected item
+                old.SelectedChange(false);
+                //get the old info for optimization
+                oldInfo = old.info;
+            }
+
+            //Set new index
             m_selected = value;
-            SongListItem item = SongListContent.transform.GetChild(value).GetComponent<SongListItem>();
-            item.SelectedChange(true);
-            BeatmapStoreInfo info = item.GetInfo();
-            Texture2D background = Helper.LoadPNG(info.BackgroundPath);
-            Helper.SetBackgroundImage(background, 0.75f);
 
+            //get the the songlistitem component from the child with new index
+            SongListItem item = SongListContentTransform.GetChild(value).GetComponent<SongListItem>();
+
+            //call select change on the item
+            item.SelectedChange(true);
+
+            //get the beatmap info of the item
+            BeatmapStoreInfo info = item.info;
+
+            //set background image if its not the same as the old one
+            if (oldInfo?.BackgroundPath != info.BackgroundPath)
+            {
+                background = Helper.LoadPNG(info.BackgroundPath);
+                Helper.SetBackgroundImage(background, 0.75f);
+            }
         }
     }
 
@@ -50,17 +71,24 @@ class SongSelectManager : SingletonBehaviour<SongSelectManager>
 
     public void AddSongItem(int index, BeatmapStoreInfo info)
     {
-        GameObject songListItem = Instantiate(SongListItemPrefab, SongListContent.transform);
+        GameObject songListItem = Instantiate(SongListItemPrefab, SongListContentTransform);
         RectTransform rect = songListItem.GetComponent<RectTransform>();
         rect.localPosition = new Vector3(0, CoordinateForIndex(index));
         SongListItem item = songListItem.GetComponent<SongListItem>();
+        item.Load();
         item.SetBeatmapInfo(info);
         item.SelectedChange(false);
     }
 
+    RectTransform SongListContentTransform;
+
     public void Start()
     {
-        BeatmapStore.LoadAll();
+        SongListContentTransform = SongListContent.GetComponent<RectTransform>();
+
+        if (BeatmapStore.Beatmaps == null)
+            BeatmapStore.LoadAll();
+
         itemHeight = SongListItemPrefab.GetComponent<RectTransform>().rect.height;
 
         int i = 0;
@@ -72,13 +100,11 @@ class SongSelectManager : SingletonBehaviour<SongSelectManager>
         }
 
         //Resize the content transform to match the size of the list
-        RectTransform last = SongListContent.transform.GetChild(SongListContent.transform.childCount - 1).GetComponent<RectTransform>();
+        RectTransform last = SongListContentTransform.GetChild(SongListContentTransform.childCount - 1).GetComponent<RectTransform>();
         RectTransform rect = SongListContent.GetComponent<RectTransform>();
         rect.sizeDelta = new Vector2(rect.sizeDelta.x, -last.localPosition.y + last.sizeDelta.y / 2 + YOffset / 2);
 
         Selected = UnityEngine.Random.Range(0, BeatmapStore.Beatmaps.Count);
-        float selectedYCoordinate = CoordinateForIndex(Selected);
-
     }
 
     public void Update()
@@ -93,7 +119,8 @@ class SongSelectManager : SingletonBehaviour<SongSelectManager>
         }
         if (Input.GetKeyDown(KeyCode.Return))
         {
-            PlayingSceneManager.StartPlaying(BeatmapStore.Beatmaps[Selected].GetBeatmap());
+            Beatmap beatmap = BeatmapStore.Beatmaps[Selected].GetBeatmap();
+            PlayingSceneManager.StartPlaying(beatmap, background);
         }
     }
 }

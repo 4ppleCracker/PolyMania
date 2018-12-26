@@ -67,9 +67,10 @@ public class Beatmap
     /// </summary>
     public IEnumerable<Note> PlayedNotes => Notes.Where(note => note.clicked);
 
-    //Loading
     public static Beatmap CurrentlyLoaded { get; private set; }
-    public static void Load(Beatmap map)
+    /// <param name="loadedBackground">If you already have the background texture loaded, pass it here</param>
+    /// <param name="loadedSong">If you already have the song loaded, pass it here</param>
+    public static void Load(Beatmap map, Texture2D loadedBackground = null, AudioClip loadedSong = null)
     {
         List<Note> newNotes = new List<Note>();
         List<Note> toExclude = new List<Note>();
@@ -88,8 +89,8 @@ public class Beatmap
         map.Notes = newNotes.ToArray();
         CurrentlyLoaded = map;
 
-        map.Song = GetAudio(map.SongPath);
-        map.BackgroundImage = Helper.LoadPNG(map.BackgroundPath);
+        map.Song = loadedSong ?? GetAudio(map.SongPath);
+        map.BackgroundImage = loadedBackground ?? Helper.LoadPNG(map.BackgroundPath);
 
         Debug.Log($"Loaded song {map.SongName}");
     }

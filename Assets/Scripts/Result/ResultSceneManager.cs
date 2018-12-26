@@ -45,4 +45,12 @@ public class ResultSceneManager : SingletonBehaviour<ResultSceneManager> {
 
         Helper.SetBackgroundImage(Beatmap.CurrentlyLoaded.BackgroundImage, 0.25f);
     }
+
+    private void Update()
+    {
+        if(Input.GetKeyDown(KeyCode.Escape))
+        {
+            Initiate.Fade("SongSelectScene", Color.black, 3);
+        }
+    }
 }
