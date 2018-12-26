@@ -7,6 +7,6 @@ using UnityEngine;
 public abstract class SingletonBehaviour<T> : MonoBehaviour where T : SingletonBehaviour<T>
 {
     private static T instance;
-    public static T Instance => instance ?? FindObjectOfType<T>() ?? CreateMe();
+    public static T Instance => instance ?? (instance = (FindObjectOfType<T>() ?? CreateMe()));
     protected static T CreateMe() => instance = new GameObject(nameof(T), typeof(T)).GetComponent<T>();
 }

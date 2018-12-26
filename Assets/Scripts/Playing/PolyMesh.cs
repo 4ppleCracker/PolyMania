@@ -12,7 +12,7 @@ public struct Triangle
 public class PolyMesh : SingletonBehaviour<PolyMesh>
 {
     public uint Count = 6;
-    public float Radius = 5f;
+    public float Radius { get; set; } = 4f;
 
     public const int MINIMUM_COUNT = 3;
 
