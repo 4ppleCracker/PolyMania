@@ -44,7 +44,7 @@ public class PlayingSceneManager : SingletonBehaviour<PlayingSceneManager> {
         PolyMesh.Instance.Generate(PolyMesh.Instance.Radius, Beatmap.CurrentlyLoaded?.SliceCount ?? PolyMesh.Instance.Count);
     }
 
-    public Result result = new Result();
+    public Result result = null;
 
     int holdTime = 250;
     IEnumerator CheckRHold()
@@ -62,17 +62,19 @@ public class PlayingSceneManager : SingletonBehaviour<PlayingSceneManager> {
         Restart();
     }
 
-    public static void StartPlaying(Beatmap map)
+    /// <param name="loadedBackground">If you already have the background texture loaded, pass it here</param>
+    /// <param name="loadedSong">If you already have the song loaded, pass it here</param>
+    public static void StartPlaying(Beatmap map, Texture2D loadedBackground = null, AudioClip loadedSong = null)
     {
-        Beatmap.Load(map);
-        Initiate.Fade("PlayingScene", Color.black, 1);
+        Beatmap.Load(map, map.BackgroundImage ?? loadedBackground, map.Song ?? loadedSong);
+        Initiate.Fade("PlayingScene", Color.black, 2);
     }
 
     public static void GotoResult()
     {
         DontDestroyOnLoad(Instance);
         SceneManager.sceneLoaded += LoadResultsScene;
-        Initiate.Fade("ResultsScene", Color.black, 1);
+        Initiate.Fade("ResultsScene", Color.black, 1.5f);
     }
     private static void LoadResultsScene(Scene resultScene, LoadSceneMode y)
     {

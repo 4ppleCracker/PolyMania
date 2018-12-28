@@ -4,16 +4,17 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 using System.IO;
+using System.Collections.Generic;
 
 public static class Helper
 {
     public static void SetBackgroundImage(Texture2D texture, float alpha = 1)
     {
-        Image image = GameObject.Find("BackgroundImage").GetComponent<Image>();
+        RawImage image = GameObject.Find("BackgroundImage").GetComponent<RawImage>();
 
         if (texture != null)
         {
-            image.sprite = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), Vector2.zero);
+            image.texture = texture;
             Color color = Color.white;
             color.a = alpha;
             image.color = color;
@@ -68,5 +69,15 @@ public static class Helper
             tex.LoadImage(fileData);
         }
         return tex;
+    }
+    public static IEnumerable<T> Flatten<T>(IEnumerable<IEnumerable<T>> collectionList)
+    {
+        foreach(ICollection<T> collection in collectionList)
+        {
+            foreach(T obj in collection)
+            {
+                yield return obj;
+            }
+        }
     }
 }

@@ -4,81 +4,158 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 class SongSelectManager : SingletonBehaviour<SongSelectManager>
 {
     [SerializeField]
-    public GameObject SongListContent;
+    public RectTransform SongListContentTransform;
     [SerializeField]
     public GameObject SongListItemPrefab;
 
-    public int YOffset = 25;
-    public int YSpacing = 25;
-
     [SerializeField]
-    private int m_selected = -1;
-    public int Selected {
+    public RectTransform ScoreListContentTransform;
+    [SerializeField]
+    public GameObject ScoreListItemPrefab;
+
+    Rect SongListItemRect;
+    Rect ScoreListItemRect;
+
+    public int SongListYOffset = 25;
+    public int SongListYSpacing = 25;
+
+    public int ScoreListYOffset = 25;
+    public int ScoreListYSpacing = 25;
+
+    private Texture2D background = null;
+
+    private static int m_selected = -1;
+    public static int Selected {
         get {
             return m_selected;
         }
         set {
+            if (Instance == null)
+            {
+                m_selected = value;
+                return;
+            }
             //Bounds checking for the new index
-            if (value < 0 || value >= SongListContent.transform.childCount)
+            if (value < 0 || value >= Instance.SongListContentTransform.childCount)
                 return;
 
+            BeatmapStoreInfo oldInfo = null;
+
             //So you dont deselect out of bounds items
-            if (m_selected >= 0 && m_selected < SongListContent.transform.childCount)
-                SongListContent.transform.GetChild(m_selected).GetComponent<SongListItem>().SelectedChange(false);
+            if (m_selected >= 0 && m_selected < Instance.SongListContentTransform.childCount)
+            {
+                SongListItem old = Instance.SongListContentTransform.GetChild(m_selected).GetComponent<SongListItem>();
 
-            //Set new index and call select the item
+                //deselect old selected item
+                old.SelectedChange(false);
+                //get the old info for optimization
+                oldInfo = old.info;
+
+                //remove old score listing
+                Instance.ScoreListContentTransform.DestroyChildren();
+            }
+
+            //Set new index
             m_selected = value;
-            SongListItem item = SongListContent.transform.GetChild(value).GetComponent<SongListItem>();
-            item.SelectedChange(true);
-            BeatmapStoreInfo info = item.GetInfo();
-            Texture2D background = Helper.LoadPNG(info.BackgroundPath);
-            Helper.SetBackgroundImage(background, 0.75f);
 
+            //get the the songlistitem component from the child with new index
+            SongListItem item = Instance.SongListContentTransform.GetComponentInChildN<SongListItem>(value);
+
+            //call select change on the item
+            item.SelectedChange(true);
+
+            //get the beatmap info of the item
+            BeatmapStoreInfo info = item.info;
+
+            //set background image if its not the same as the old one
+            if (oldInfo?.BackgroundPath != info.BackgroundPath || Instance.isStart)
+            {
+                Instance.background = Helper.LoadPNG(info.BackgroundPath);
+                Helper.SetBackgroundImage(Instance.background, 0.75f);
+            }
+
+            //load local scores for this map
+            SortedList<long, Result[]> scoresList = null;
+            if (ScoreStore.Scores?.TryGetValue(info.uuid, out scoresList) ?? false)
+            {
+                Result[] flatScoreList = Helper.Flatten(scoresList.Values).ToArray();
+
+                //show the local scores
+                AddItemsToList(
+                    flatScoreList.Length,
+                    Instance.ScoreListItemPrefab,
+                    (int index) =>
+                      VerticalListPosition(index, Instance.ScoreListItemRect, Instance.ScoreListYOffset, Instance.ScoreListYSpacing) +
+                      new Vector3(Instance.isStart ? 0 : 122.35f, 0, 0),
+                    Instance.ScoreListContentTransform,
+                    (GameObject songListItem, int index) =>
+                    {
+                        ScoreListItem scoreItem = songListItem.GetComponent<ScoreListItem>();
+                        scoreItem.Load();
+                        scoreItem.SetScore(flatScoreList[flatScoreList.Length - 1 - index]);
+                    }
+                );
+            }
         }
     }
 
-    public float itemHeight = -1;
-
-    public float CoordinateForIndex(int index)
+    public static void AddItemsToList(int count, GameObject prefab, Func<int, Vector3> getPosition, RectTransform list, Action<GameObject, int> initialize = null)
     {
-        return -YOffset - ((YSpacing + itemHeight) * index);
+        for (int i = 0; i < count; i++)
+        {
+            GameObject songListItem = Instantiate(prefab, list);
+            RectTransform rect = songListItem.GetComponent<RectTransform>();
+            rect.localPosition = getPosition(i);
+            initialize?.Invoke(songListItem, i);
+        }
+        RectTransform last = list.GetChild(list.childCount - 1).GetComponent<RectTransform>();
+        RectTransform first = list.GetChild(0).GetComponent<RectTransform>();
+        list.sizeDelta = new Vector2(list.sizeDelta.x, -last.localPosition.y + last.sizeDelta.y / 2 + first.rect.height / 2);
     }
 
-    public void AddSongItem(int index, BeatmapStoreInfo info)
+    private static Vector3 VerticalListPosition(int index, Rect rect, int offset, int spacing)
     {
-        GameObject songListItem = Instantiate(SongListItemPrefab, SongListContent.transform);
-        RectTransform rect = songListItem.GetComponent<RectTransform>();
-        rect.localPosition = new Vector3(0, CoordinateForIndex(index));
-        SongListItem item = songListItem.GetComponent<SongListItem>();
-        item.SetBeatmapInfo(info);
-        item.SelectedChange(false);
+        return new Vector3(0, -offset - ((spacing + rect.height) * index) - rect.height / 2);
     }
+
+    bool isStart = true;
+    static bool first = true;
 
     public void Start()
     {
-        BeatmapStore.LoadAll();
-        itemHeight = SongListItemPrefab.GetComponent<RectTransform>().rect.height;
+        ScoreStore.LoadOffline();
 
-        int i = 0;
-        foreach(BeatmapStoreInfo info in BeatmapStore.Beatmaps)
-        {
-            AddSongItem(i, info);
+        if (BeatmapStore.Beatmaps == null)
+            BeatmapStore.LoadAll();
 
-            i++;
-        }
+        SongListItemRect = SongListItemPrefab.GetComponent<RectTransform>().rect;
+        ScoreListItemRect = ScoreListItemPrefab.GetComponent<RectTransform>().rect;
 
-        //Resize the content transform to match the size of the list
-        RectTransform last = SongListContent.transform.GetChild(SongListContent.transform.childCount - 1).GetComponent<RectTransform>();
-        RectTransform rect = SongListContent.GetComponent<RectTransform>();
-        rect.sizeDelta = new Vector2(rect.sizeDelta.x, -last.localPosition.y + last.sizeDelta.y / 2 + YOffset / 2);
+        AddItemsToList(
+            BeatmapStore.Beatmaps.Count,
+            SongListItemPrefab,
+            (int index) => VerticalListPosition(index, SongListItemRect, SongListYOffset, SongListYSpacing), 
+            SongListContentTransform, 
+            (GameObject songListItem, int index) =>
+            {
+                SongListItem item = songListItem.GetComponent<SongListItem>();
+                item.Load();
+                item.SetBeatmapInfo(BeatmapStore.Beatmaps[index]);
+                item.SelectedChange(false);
+            }
+        );
 
-        Selected = UnityEngine.Random.Range(0, BeatmapStore.Beatmaps.Count);
-        float selectedYCoordinate = CoordinateForIndex(Selected);
-
+        if (first)
+            Selected = UnityEngine.Random.Range(0, BeatmapStore.Beatmaps.Count);
+        else
+            Selected = Selected;
+        isStart = false;
+        first = false;
     }
 
     public void Update()
@@ -93,7 +170,27 @@ class SongSelectManager : SingletonBehaviour<SongSelectManager>
         }
         if (Input.GetKeyDown(KeyCode.Return))
         {
-            PlayingSceneManager.StartPlaying(BeatmapStore.Beatmaps[Selected].GetBeatmap());
+            Beatmap beatmap = BeatmapStore.Beatmaps[Selected].GetBeatmap();
+            PlayingSceneManager.StartPlaying(beatmap, background);
         }
+        if(Input.GetKeyDown(KeyCode.Escape))
+        {
+            Initiate.Fade("MainMenuScene", Color.black, 3);
+        }
+    }
+}
+
+public static class ExtensionMethods
+{
+    public static void DestroyChildren(this Transform transform)
+    {
+        foreach (Transform child in transform)
+        {
+            Object.Destroy(child.gameObject);
+        }
+    }
+    public static T GetComponentInChildN<T>(this Transform transform, int n)
+    {
+        return transform.GetChild(n).GetComponent<T>();
     }
 }

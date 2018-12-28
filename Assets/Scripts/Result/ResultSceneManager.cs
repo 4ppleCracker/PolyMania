@@ -29,6 +29,7 @@ public class ResultSceneManager : SingletonBehaviour<ResultSceneManager> {
         Debug.Log("Loading results");
         this.result = result;
 
+        Debug.Log("Loading UI");
         accuracyListText = GameObject.Find("AccuracyListText").GetComponent<TextMeshProUGUI>();
         accuracyText = GameObject.Find("AccuracyText").GetComponent<TextMeshProUGUI>();
         scoreText = GameObject.Find("ScoreText").GetComponent<TextMeshProUGUI>();
@@ -43,6 +44,22 @@ public class ResultSceneManager : SingletonBehaviour<ResultSceneManager> {
 
         highestComboText.text = "Highest Combo: " + result.highestCombo + "x";
 
+        Debug.Log("Saving score to disk");
+
+        ScoreStore.AddOfflineScore(result);
+
+        Debug.Log("Setting background");
+
         Helper.SetBackgroundImage(Beatmap.CurrentlyLoaded.BackgroundImage, 0.25f);
+
+        Debug.Log("Done");
+    }
+
+    private void Update()
+    {
+        if(Input.GetKeyDown(KeyCode.Escape))
+        {
+            Initiate.Fade("SongSelectScene", Color.black, 3);
+        }
     }
 }

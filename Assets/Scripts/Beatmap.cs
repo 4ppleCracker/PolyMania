@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.Serialization;
+using System.Text;
 using System.Xml.Serialization;
 using UnityEditor;
 using UnityEngine;
@@ -68,29 +69,35 @@ public class Beatmap
     /// </summary>
     public IEnumerable<Note> PlayedNotes => Notes.Where(note => note.clicked);
 
-    //Loading
     public static Beatmap CurrentlyLoaded { get; private set; }
-    public static void Load(Beatmap map)
+
+    private static IEnumerable<Note> RemoveJumps(Note[] notes)
     {
-        List<Note> newNotes = new List<Note>();
         List<Note> toExclude = new List<Note>();
-        foreach(Note note in map.Notes)
+        foreach (Note note in notes)
         {
             //Clean up jumps
-            var jumpPairs = map.Notes.Where(other => other.slice != note.slice && other.time == note.time);
+            var jumpPairs = notes.Where(other => other.slice != note.slice && other.time == note.time);
             if (jumpPairs.Count() > 0)
             {
                 toExclude.AddRange(jumpPairs);
             }
 
-            if(!toExclude.Contains(note))
-                newNotes.Add(new Note(note.time, note.slice));
+            if (!toExclude.Contains(note))
+                yield return new Note(note.time, note.slice);
         }
-        map.Notes = newNotes.ToArray();
+    }
+
+    /// <param name="loadedBackground">If you already have the background texture loaded, pass it here</param>
+    /// <param name="loadedSong">If you already have the song loaded, pass it here</param>
+    public static void Load(Beatmap map, Texture2D loadedBackground = null, AudioClip loadedSong = null)
+    {
+        map.Notes = RemoveJumps(map.Notes).ToArray();
+
         CurrentlyLoaded = map;
 
-        map.Song = GetAudio(map.SongPath);
-        map.BackgroundImage = Helper.LoadPNG(map.BackgroundPath);
+        map.Song = loadedSong ?? GetAudio(map.SongPath);
+        map.BackgroundImage = loadedBackground ?? Helper.LoadPNG(map.BackgroundPath);
 
         Debug.Log($"Loaded song {map.SongName}");
     }
@@ -209,66 +216,101 @@ public class Beatmap
     }
     public static AudioClip GetAudio(string path)
     {
+        string extension = Path.GetExtension(path);
         byte[] data = File.ReadAllBytes(path);
-        FileInfo fileInfo = new FileInfo(path);
-        switch (fileInfo.Extension)
+        switch (extension)
         {
             case ".mp3":
             {
-                return GetMp3Audio(fileInfo.Name, data);
+                return GetMp3Audio(Path.GetFileName(path), data);
             }
             case ".wav":
                 return WavUtility.ToAudioClip(data);
             default:
             {
-                Debug.Log(fileInfo.Extension + " file type is not yet supported");
+                Debug.Log(extension + " file type is not yet supported");
                 return null;
             }
         }
     }
 
-    public static Beatmap FromMania(string osuFilePath)
+    public string GetUUID()
     {
-        var osuBeatmap = OsuParsers.Parser.ParseBeatmap(osuFilePath);
-
-        if (osuBeatmap.GeneralSection.Mode != OsuParsers.Enums.Ruleset.Mania) throw new Exception("Not a mania map");
-
-        uint sliceCount = (uint)osuBeatmap.DifficultySection.CircleSize;
-
-        if (sliceCount < PolyMesh.MINIMUM_COUNT) throw new Exception($"Key count less than {PolyMesh.MINIMUM_COUNT} is not supported");
-
-        uint sliceWidth = 512 / sliceCount;
-        List<Note> notes = new List<Note>();
-        foreach (var hitObject in osuBeatmap.HitObjects)
+        StringBuilder builder = new StringBuilder((Notes.Length * 20) + SongName.Length);
+        foreach(Note note in Notes)
         {
-            //TODO For the 7K + 1 mode, the column index is 1 + x / (512 / 7), leaving the column 0 for the specials.
-            uint slice = (uint)(hitObject.Position.X / sliceWidth);
-            int time = hitObject.StartTime;
-
-            notes.Add(new Note(new Time(ms: time), slice));
+            builder.Append(note.GetUUID().ToString());
         }
+        builder.Append(SongName);
+        return builder.ToString();
+    }
 
-        //Make it absolute if its relative
-        osuFilePath = new FileInfo(osuFilePath).Directory.FullName;
+    class Mania
+    {
+        private static IEnumerable<Note> ToPolymaniaNotes(int keyCount, List<OsuParsers.Beatmaps.Objects.HitObject> hitObjects)
+        {
+            int sliceWidth = 512 / keyCount;
+            foreach (var hitObject in hitObjects)
+            {
+                //TODO For the 7K + 1 mode, the column index is 1 + x / (512 / 7), leaving the column 0 for the specials.
+                int slice = hitObject.Position.X / sliceWidth;
+                int time = hitObject.StartTime;
 
-        //TODO beatmap.EventsSection.BackgroundImage ?
-        Beatmap beatmap = new Beatmap() {
-            SliceCount = sliceCount,
-            SongName = osuBeatmap.MetadataSection.TitleUnicode,
-            RomanizedSongName = osuBeatmap.MetadataSection.Title,
-            SongPath = Path.Combine(osuFilePath, osuBeatmap.GeneralSection.AudioFilename),
-            Notes = notes.ToArray(),
-            BackgroundPath = Path.Combine(osuFilePath, osuBeatmap.EventsSection.BackgroundImage),
-            DifficultyName = osuBeatmap.MetadataSection.Version,
-            AccMod = osuBeatmap.DifficultySection.OverallDifficulty,
-            SpeedMod = osuBeatmap.DifficultySection.ApproachRate
-        };
-        return beatmap;
+                yield return new Note(new Time(ms: time), (uint)slice);
+            }
+        }
+        public static Beatmap FromFilePath(string osuFilePath)
+        {
+            var osuBeatmap = OsuParsers.Parser.ParseBeatmap(osuFilePath);
+
+            if (osuBeatmap.GeneralSection.Mode != OsuParsers.Enums.Ruleset.Mania) throw new System.Exception("Not a mania map");
+
+            int keyCount = (int)osuBeatmap.DifficultySection.CircleSize;
+            if (keyCount < PolyMesh.MINIMUM_COUNT) throw new System.Exception($"Key count less than {PolyMesh.MINIMUM_COUNT} is not supported");
+
+            Note[] notes = ToPolymaniaNotes(keyCount, osuBeatmap.HitObjects).ToArray();
+
+            //Make it absolute if its relative
+            string osuSongPath = Path.GetDirectoryName(Path.GetFullPath(osuFilePath));
+
+            //TODO beatmap.EventsSection.BackgroundImage ?
+            Beatmap beatmap = new Beatmap()
+            {
+                SliceCount = (uint)keyCount,
+                SongName = osuBeatmap.MetadataSection.Title,
+                SongPath = Path.Combine(osuSongPath, osuBeatmap.GeneralSection.AudioFilename),
+                Notes = notes.ToArray(),
+                BackgroundPath = Path.Combine(osuSongPath, osuBeatmap.EventsSection.BackgroundImage),
+                DifficultyName = osuBeatmap.MetadataSection.Version,
+                AccMod = osuBeatmap.DifficultySection.OverallDifficulty,
+                SpeedMod = osuBeatmap.DifficultySection.ApproachRate
+            };
+            return beatmap;
+        }
     }
 
     public Beatmap()
     {
 
+    }
+
+    static void CopySongToLocal(string externalPath, string localPath)
+    {
+        AudioClip song = GetAudio(externalPath);
+        byte[] wavData = WavUtility.FromAudioClip(song);
+        using (FileStream stream = new FileStream(localPath, FileMode.Create, FileAccess.Write))
+        {
+            stream.Write(wavData, 0, wavData.Length);
+        }
+    }
+    static void CopyBackgroundToLocal(string externalPath, string localPath)
+    {
+        Texture2D tex = Helper.LoadPNG(externalPath);
+        byte[] bg = tex.EncodeToPNG();
+        using (FileStream stream = new FileStream(localPath, FileMode.Create, FileAccess.Write))
+        {
+            stream.Write(bg, 0, bg.Length);
+        }
     }
 
 #if UNITY_EDITOR
@@ -278,7 +320,7 @@ public class Beatmap
     {
         string loadPath = EditorUtility.OpenFilePanel("Load Mania File", "", "osu");
         if (loadPath == "") return; //Pressed cancel
-        Beatmap beatmap = FromMania(loadPath);
+        Beatmap beatmap = Mania.FromFilePath(loadPath);
 
         string path = Path.Combine(BeatmapStore.DefaultSongPath, beatmap.SanitizedName);
 
@@ -289,12 +331,7 @@ public class Beatmap
         string songPath = Path.Combine(path, "song.wav");
         if (!File.Exists(songPath))
         {
-            AudioClip song = GetAudio(beatmap.SongPath);
-            byte[] wavData = WavUtility.FromAudioClip(song);
-            using(FileStream stream = new FileStream(songPath, FileMode.Create, FileAccess.Write))
-            {
-                stream.Write(wavData, 0, wavData.Length);
-            }
+            CopySongToLocal(beatmap.SongPath, songPath);
         }
         beatmap.SongPath = songPath;
 
@@ -303,12 +340,7 @@ public class Beatmap
             string bgPath = Path.Combine(path, "bg.png");
             if (!File.Exists(bgPath))
             {
-                Texture2D tex = Helper.LoadPNG(beatmap.BackgroundPath);
-                byte[] bg = tex.EncodeToPNG();
-                using (FileStream stream = new FileStream(bgPath, FileMode.Create, FileAccess.Write))
-                {
-                    stream.Write(bg, 0, bg.Length);
-                }
+                CopyBackgroundToLocal(beatmap.BackgroundPath, bgPath);
             }
             beatmap.BackgroundPath = bgPath;
         }

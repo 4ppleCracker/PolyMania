@@ -17,6 +17,7 @@ public class BeatmapStoreInfo
     public string SongPath;
     public string MapPath;
     public string BackgroundPath;
+    public string uuid;
 
     public Beatmap GetBeatmap() {
         return BeatmapStore.DeserializeBeatmap(MapPath);
@@ -86,7 +87,8 @@ static class BeatmapStore
                     SongName = beatmap.SongName,
                     RomanizedSongName = beatmap.RomanizedSongName,
                     DifficultyName = beatmap.DifficultyName,
-                    BackgroundPath = beatmap.BackgroundPath
+                    BackgroundPath = beatmap.BackgroundPath,
+                    uuid = beatmap.GetUUID()
                 };
                 if (Beatmaps == null)
                     Beatmaps = new List<BeatmapStoreInfo>();

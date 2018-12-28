@@ -7,10 +7,6 @@ public class SongListItem : MonoBehaviour
     TextMeshProUGUI SongNameText = null;
     public BeatmapStoreInfo info = null;
 
-    public BeatmapStoreInfo GetInfo()
-    {
-        return info;
-    }
     public void SetBeatmapInfo(BeatmapStoreInfo info)
     {
         if(SongNameText == null)
@@ -20,14 +16,22 @@ public class SongListItem : MonoBehaviour
         this.info = info;
     }
 
+    public void Load()
+    {
+        image = GetComponent<Image>();
+    }
+
     Image image;
+
+    static Vector3 SelectedScale = new Vector3(1.1f, 1.1f);
+    static Vector3 UnselectedScale = new Vector3(1f, 1f);
+
+    static Color SelectedColor = new Color(1, 1, 1, 1);
+    static Color UnselectedColor = new Color(0, 0, 0, 0.25f);
 
     public void SelectedChange(bool selected)
     {
-        float scale = selected ? 1.1f : 1;
-        transform.localScale = new Vector3(scale, scale);
-
-        Color color = selected ? new Color(1, 1, 1, 1) : new Color(0, 0, 0, 0.25f);
-        (image ?? (image = GetComponent<Image>())).color = color;
+        transform.localScale = selected ? SelectedScale : UnselectedScale;
+        image.color = selected ? SelectedColor : UnselectedColor;
     }
 }
