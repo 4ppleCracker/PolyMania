@@ -14,6 +14,7 @@ public class Beatmap
 {
     //Metadata
     public string SongName;
+    public string RomanizedSongName;
     public string DifficultyName;
 
     //Data
@@ -34,7 +35,7 @@ public class Beatmap
     //Accessors
     //FUTURE ME, DO NOT CHANGE THIS, ITS CORRECT, 3 <= 3 is true, meaning there are notes left when there arent
     public bool AnyNotesLeft => PlayedNotes.Count() < Notes.Length;
-    public string SanitizedName => Helper.SanitizeString(SongName);
+    public string SanitizedName => Helper.SanitizeString(RomanizedSongName);
 
     //Methods
     public Note GetLatestForSlice(int slice)
@@ -230,11 +231,11 @@ public class Beatmap
     {
         var osuBeatmap = OsuParsers.Parser.ParseBeatmap(osuFilePath);
 
-        if (osuBeatmap.GeneralSection.Mode != OsuParsers.Enums.Ruleset.Mania) throw new System.Exception("Not a mania map");
+        if (osuBeatmap.GeneralSection.Mode != OsuParsers.Enums.Ruleset.Mania) throw new Exception("Not a mania map");
 
         uint sliceCount = (uint)osuBeatmap.DifficultySection.CircleSize;
 
-        if (sliceCount < PolyMesh.MINIMUM_COUNT) throw new System.Exception($"Key count less than {PolyMesh.MINIMUM_COUNT} is not supported");
+        if (sliceCount < PolyMesh.MINIMUM_COUNT) throw new Exception($"Key count less than {PolyMesh.MINIMUM_COUNT} is not supported");
 
         uint sliceWidth = 512 / sliceCount;
         List<Note> notes = new List<Note>();
@@ -253,7 +254,8 @@ public class Beatmap
         //TODO beatmap.EventsSection.BackgroundImage ?
         Beatmap beatmap = new Beatmap() {
             SliceCount = sliceCount,
-            SongName = osuBeatmap.MetadataSection.Title,
+            SongName = osuBeatmap.MetadataSection.TitleUnicode,
+            RomanizedSongName = osuBeatmap.MetadataSection.Title,
             SongPath = Path.Combine(osuFilePath, osuBeatmap.GeneralSection.AudioFilename),
             Notes = notes.ToArray(),
             BackgroundPath = Path.Combine(osuFilePath, osuBeatmap.EventsSection.BackgroundImage),

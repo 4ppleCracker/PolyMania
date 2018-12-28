@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Bson;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -10,6 +12,7 @@ using System.Xml.Serialization;
 public class BeatmapStoreInfo
 {
     public string SongName;
+    public string RomanizedSongName;
     public string DifficultyName;
     public string SongPath;
     public string MapPath;
@@ -34,9 +37,39 @@ static class BeatmapStore
     }
     public static void SerializeBeatmap(Beatmap map, string fileName)
     {
-        using (FileStream stream = new FileStream(fileName, FileMode.OpenOrCreate, FileAccess.Write))
+        /*using (FileStream stream = new FileStream(fileName, FileMode.OpenOrCreate, FileAccess.Write))
         {
             new XmlSerializer(typeof(Beatmap)).Serialize(stream, map);
+        }*/
+        using (TextWriter textWriter = new StringWriter())
+        using (JsonWriter writer = new JsonTextWriter(textWriter))
+        {
+            writer.Formatting = Formatting.Indented;
+
+            writer.WriteStartObject();
+            {
+                writer.WriteComment("Metadata");
+                {
+                    writer.WritePropertyName("SongName"); writer.WriteValue(map.SongName);
+                    writer.WritePropertyName("DifficultyName"); writer.WriteValue(map.DifficultyName);
+                }
+                writer.WriteComment("Modifierdata");
+                {
+                    writer.WritePropertyName("SpeedMod"); writer.WriteValue(map.SpeedMod);
+                    writer.WritePropertyName("AccMod"); writer.WriteValue(map.AccMod);
+                    writer.WritePropertyName("SliceCount"); writer.WriteValue(map.SliceCount);
+                }
+                writer.WriteComment("Designdata");
+                {
+                    writer.WritePropertyName("SongPath"); writer.WriteValue(map.SongPath);
+                    writer.WritePropertyName("BackgroundPath"); writer.WriteValue(map.BackgroundPath);
+                }
+                writer.WriteComment("Notedata");
+                {
+                    writer.WritePropertyName("Notes"); writer.WriteRawValue(JsonConvert.SerializeObject(map.Notes, Formatting.Indented));
+                }
+            }
+            writer.WriteEndObject();
         }
     }
 
@@ -51,6 +84,7 @@ static class BeatmapStore
                     MapPath = file,
                     SongPath = beatmap.SongPath,
                     SongName = beatmap.SongName,
+                    RomanizedSongName = beatmap.RomanizedSongName,
                     DifficultyName = beatmap.DifficultyName,
                     BackgroundPath = beatmap.BackgroundPath
                 };
