@@ -12,24 +12,35 @@ using UnityEngine;
 
 static class ScoreStore
 {
-    public static Dictionary<string, SortedList<long, Result>> Scores = null;
+    public static Dictionary<string, SortedList<long, Result[]>> Scores = null;
     public const string FilePath = "score.xml";
 
     private static void SetScoresOn(string index, Result score)
     {
-        SortedList<long, Result> list;
+        SortedList<long, Result[]> list;
         if (Scores.ContainsKey(index))
             list = Scores[index];
         else
-            Scores.Add(index, list = new SortedList<long, Result>());
-        list.Add(score.score, score);
+            Scores.Add(index, list = new SortedList<long, Result[]>());
+        Result[] scores = null;
+        if (list.TryGetValue(score.score, out scores))
+        {
+            Result[] newScores = new Result[scores.Length + 1];
+            Array.Copy(scores, newScores, scores.Length);
+            newScores[newScores.Length - 1] = score;
+            list[score.score] = newScores;
+        }
+        else
+        {
+            list.Add(score.score, new[] { score });
+        }
     }
 
     public static void LoadOffline()
     {
         if (!File.Exists(FilePath)) return;
 
-        Scores = new Dictionary<string, SortedList<long, Result>>();
+        Scores = new Dictionary<string, SortedList<long, Result[]>>();
 
         using (XmlReader reader = XmlReader.Create(FilePath))
         {

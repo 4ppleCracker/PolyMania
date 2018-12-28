@@ -82,14 +82,22 @@ class SongSelectManager : SingletonBehaviour<SongSelectManager>
             }
 
             //load local scores for this map
-            SortedList<long, Result> scores = null;
-            if (ScoreStore.Scores?.TryGetValue(info.uuid, out scores) ?? false)
+            SortedList<long, Result[]> scoresList = null;
+            if (ScoreStore.Scores?.TryGetValue(info.uuid, out scoresList) ?? false)
             {
-                Debug.Log(scores.Count);
+                Result[] flatScoreList;
+                {
+                    List<Result> flatList = new List<Result>();
+                    foreach (Result[] scores in scoresList.Values)
+                    {
+                        flatList.AddRange(scores);
+                    }
+                    flatScoreList = flatList.ToArray();
+                }
 
                 //show the local scores
                 AddItemsToList(
-                    scores.Count,
+                    flatScoreList.Length,
                     Instance.ScoreListItemPrefab,
                     (int index) =>
                       VerticalListPosition(index, Instance.ScoreListItemRect, Instance.ScoreListYOffset, Instance.ScoreListYSpacing) +
@@ -99,7 +107,7 @@ class SongSelectManager : SingletonBehaviour<SongSelectManager>
                     {
                         ScoreListItem scoreItem = songListItem.GetComponent<ScoreListItem>();
                         scoreItem.Load();
-                        scoreItem.SetScore(scores.ElementAt(scores.Count - 1 - index).Value);
+                        scoreItem.SetScore(flatScoreList[flatScoreList.Length - 1 - index]);
                     }
                 );
             }

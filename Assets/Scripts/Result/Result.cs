@@ -24,6 +24,7 @@ public class Result
     public int highestCombo;
     public long score;
     public string uuid;
+    public DateTime date;
 
     public int GetCountForAccuracy(AccuracyType type)
     {

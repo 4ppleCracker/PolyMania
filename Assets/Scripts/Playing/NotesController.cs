@@ -218,6 +218,7 @@ public class NotesController : SingletonBehaviour<NotesController> {
         result.highestCombo = highestCombo;
         result.score = Score;
         result.uuid = Beatmap.CurrentlyLoaded.GetUUID();
+        result.date = DateTime.Now;
 
         //put the result into playing scene manager so it can be pushed to result scene manager by GotoResult
         PlayingSceneManager.Instance.result = result;
