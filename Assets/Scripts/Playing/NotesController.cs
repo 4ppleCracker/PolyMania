@@ -88,7 +88,29 @@ public class NotesController : SingletonBehaviour<NotesController> {
         NoteSize = NotePrefab.GetComponent<MeshFilter>().sharedMesh.bounds.max;
     }
 
-    public void Click()
+    public Accuracy ClickNote(Note note)
+    {
+        //Calculate accuracy for note
+        int accuracy = (int)(note.TimeToClick.Ms * (Beatmap.CurrentlyLoaded.AccMod / 15));
+
+        //Set the data
+        note.clicked = true;
+        note.trueAccuracy = accuracy;
+
+        //save the note into the beatmap
+        Beatmap.CurrentlyLoaded.Notes[Beatmap.CurrentlyLoaded.GetIndexForNote(note)] = note;
+
+        //add combo and score
+        Combo++;
+        Score += GetScoreForNote(Combo, note.Accuracy);
+
+        //update accuracy text
+        PlayingSceneManager.Instance.UpdateAccuracyText(CurrentAccuracy());
+
+        return note.Accuracy;
+    }
+
+    public void CheckClick()
     {
         //go through each note of the beatmap
         for (int i = 0; i < Beatmap.CurrentlyLoaded.Notes.Length; i++)
@@ -99,22 +121,10 @@ public class NotesController : SingletonBehaviour<NotesController> {
             //if the correct slice is aimed at, song position is within the hit frame of the note, and the note isnt clicked
             if (note.slice == AimController.Instance.SelectedSlice && Conductor.Instance.Position.IsWithin(note.HitTimeFrame) && !note.clicked)
             {
-                //Calculate accuracy for note
-                int accuracy = (int)(note.TimeToClick.Ms * (Beatmap.CurrentlyLoaded.AccMod / 15));
+                //click the note
+                Accuracy accuracy = ClickNote(note);
 
-                //Set the data
-                note.clicked = true;
-                note.trueAccuracy = accuracy;
-
-                //save the note into the beatmap
-                Beatmap.CurrentlyLoaded.Notes[Beatmap.CurrentlyLoaded.GetIndexForNote(note)] = note;
-
-                //add combo and score
-                Combo++;
-                Score += GetScoreForNote(Combo, note.Accuracy);
-
-                //update accuracy text
-                PlayingSceneManager.Instance.UpdateAccuracyText(CurrentAccuracy());
+                //TODO display hit accuracy
 
                 //To make sure we dont catch 2 notes in 1 tap
                 break;
@@ -141,7 +151,7 @@ public class NotesController : SingletonBehaviour<NotesController> {
                 //If space key is pressed, call the click code
                 if (Input.GetKeyDown(KeyCode.Space))
                 {
-                    Click();
+                    CheckClick();
                 }
                 //Go through each note in the loaded beatmap
                 for (int i = 0; i < Beatmap.CurrentlyLoaded.Notes.Length; i++)
@@ -193,7 +203,7 @@ public class NotesController : SingletonBehaviour<NotesController> {
     public void InitResults()
     {
         //create result instance
-        Result result = PlayingSceneManager.Instance.result;
+        Result result = new Result();
 
         //set result the result notes
         result.resultNotes = new ResultNote[Beatmap.CurrentlyLoaded.Notes.Length];
@@ -207,6 +217,7 @@ public class NotesController : SingletonBehaviour<NotesController> {
         result.totalAccuracy = CurrentAccuracy();
         result.highestCombo = highestCombo;
         result.score = Score;
+        result.uuid = Beatmap.CurrentlyLoaded.GetUUID();
 
         //put the result into playing scene manager so it can be pushed to result scene manager by GotoResult
         PlayingSceneManager.Instance.result = result;

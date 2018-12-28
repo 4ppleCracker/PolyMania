@@ -76,12 +76,9 @@ public struct Note
                slice == note.slice;
     }
 
-    public override int GetHashCode()
+    public long GetUUID()
     {
-        var hashCode = 750083029;
-        hashCode = hashCode * -1521134295 + EqualityComparer<Time>.Default.GetHashCode(time);
-        hashCode = hashCode * -1521134295 + slice.GetHashCode();
-        return hashCode;
+        return ((long)time.Ms << 32) | slice;
     }
 
     public Note(Time time, uint slice)

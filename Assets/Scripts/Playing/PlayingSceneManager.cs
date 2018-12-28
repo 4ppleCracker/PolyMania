@@ -44,7 +44,7 @@ public class PlayingSceneManager : SingletonBehaviour<PlayingSceneManager> {
         PolyMesh.Instance.Generate(PolyMesh.Instance.Radius, Beatmap.CurrentlyLoaded?.SliceCount ?? PolyMesh.Instance.Count);
     }
 
-    public Result result = new Result();
+    public Result result = null;
 
     int holdTime = 250;
     IEnumerator CheckRHold()

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.Serialization;
+using System.Text;
 using System.Xml.Serialization;
 using UnityEditor;
 using UnityEngine;
@@ -225,6 +226,17 @@ public class Beatmap
                 return null;
             }
         }
+    }
+
+    public string GetUUID()
+    {
+        StringBuilder builder = new StringBuilder((Notes.Length * 20) + SongName.Length);
+        foreach(Note note in Notes)
+        {
+            builder.Append(note.GetUUID().ToString());
+        }
+        builder.Append(SongName);
+        return builder.ToString();
     }
 
     public static Beatmap FromMania(string osuFilePath)
