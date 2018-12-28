@@ -4,6 +4,7 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 using System.IO;
+using System.Collections.Generic;
 
 public static class Helper
 {
@@ -68,5 +69,15 @@ public static class Helper
             tex.LoadImage(fileData);
         }
         return tex;
+    }
+    public static IEnumerable<T> Flatten<T>(IEnumerable<IEnumerable<T>> collectionList)
+    {
+        foreach(ICollection<T> collection in collectionList)
+        {
+            foreach(T obj in collection)
+            {
+                yield return obj;
+            }
+        }
     }
 }

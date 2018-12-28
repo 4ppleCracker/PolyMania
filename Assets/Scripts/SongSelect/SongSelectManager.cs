@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 class SongSelectManager : SingletonBehaviour<SongSelectManager>
 {
@@ -56,17 +57,14 @@ class SongSelectManager : SingletonBehaviour<SongSelectManager>
                 oldInfo = old.info;
 
                 //remove old score listing
-                foreach (Transform child in Instance.ScoreListContentTransform)
-                {
-                    Destroy(child.gameObject);
-                }
+                Instance.ScoreListContentTransform.DestroyChildren();
             }
 
             //Set new index
             m_selected = value;
 
             //get the the songlistitem component from the child with new index
-            SongListItem item = Instance.SongListContentTransform.GetChild(value).GetComponent<SongListItem>();
+            SongListItem item = Instance.SongListContentTransform.GetComponentInChildN<SongListItem>(value);
 
             //call select change on the item
             item.SelectedChange(true);
@@ -85,15 +83,7 @@ class SongSelectManager : SingletonBehaviour<SongSelectManager>
             SortedList<long, Result[]> scoresList = null;
             if (ScoreStore.Scores?.TryGetValue(info.uuid, out scoresList) ?? false)
             {
-                Result[] flatScoreList;
-                {
-                    List<Result> flatList = new List<Result>();
-                    foreach (Result[] scores in scoresList.Values)
-                    {
-                        flatList.AddRange(scores);
-                    }
-                    flatScoreList = flatList.ToArray();
-                }
+                Result[] flatScoreList = Helper.Flatten(scoresList.Values).ToArray();
 
                 //show the local scores
                 AddItemsToList(
@@ -187,5 +177,20 @@ class SongSelectManager : SingletonBehaviour<SongSelectManager>
         {
             Initiate.Fade("MainMenuScene", Color.black, 3);
         }
+    }
+}
+
+public static class ExtensionMethods
+{
+    public static void DestroyChildren(this Transform transform)
+    {
+        foreach (Transform child in transform)
+        {
+            Object.Destroy(child.gameObject);
+        }
+    }
+    public static T GetComponentInChildN<T>(this Transform transform, int n)
+    {
+        return transform.GetChild(n).GetComponent<T>();
     }
 }
