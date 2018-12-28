@@ -277,7 +277,8 @@ public class Beatmap
             Beatmap beatmap = new Beatmap()
             {
                 SliceCount = (uint)keyCount,
-                SongName = osuBeatmap.MetadataSection.Title,
+                SongName = osuBeatmap.MetadataSection.TitleUnicode,
+                RomanizedSongName = osuBeatmap.MetadataSection.Title,
                 SongPath = Path.Combine(osuSongPath, osuBeatmap.GeneralSection.AudioFilename),
                 Notes = notes.ToArray(),
                 BackgroundPath = Path.Combine(osuSongPath, osuBeatmap.EventsSection.BackgroundImage),
@@ -328,14 +329,17 @@ public class Beatmap
         if (!Directory.Exists(path))
             Directory.CreateDirectory(path);
 
-        string songPath = Path.Combine(path, "song.wav");
-        if (!File.Exists(songPath))
+        if (beatmap.SongPath != null)
         {
-            CopySongToLocal(beatmap.SongPath, songPath);
+            string songPath = Path.Combine(path, "song.wav");
+            if (!File.Exists(songPath))
+            {
+                CopySongToLocal(beatmap.SongPath, songPath);
+            }
+            beatmap.SongPath = songPath;
         }
-        beatmap.SongPath = songPath;
 
-        if (beatmap.BackgroundImage != null)
+        if (beatmap.BackgroundPath != null)
         {
             string bgPath = Path.Combine(path, "bg.png");
             if (!File.Exists(bgPath))

@@ -8,6 +8,7 @@ using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
+using UnityEngine;
 
 public class BeatmapStoreInfo
 {
@@ -42,36 +43,52 @@ static class BeatmapStore
         {
             new XmlSerializer(typeof(Beatmap)).Serialize(stream, map);
         }*/
-        using (TextWriter textWriter = new StringWriter())
-        using (JsonWriter writer = new JsonTextWriter(textWriter))
+        StringBuilder sb = new StringBuilder();
+        using (StringWriter stream = new StringWriter(sb))
+        using (JsonWriter writer = new JsonTextWriter(stream))
         {
             writer.Formatting = Formatting.Indented;
 
             writer.WriteStartObject();
             {
+                writer.WriteWhitespace("\n");
                 writer.WriteComment("Metadata");
                 {
                     writer.WritePropertyName("SongName"); writer.WriteValue(map.SongName);
                     writer.WritePropertyName("DifficultyName"); writer.WriteValue(map.DifficultyName);
                 }
+                writer.WriteWhitespace("\n");
                 writer.WriteComment("Modifierdata");
                 {
                     writer.WritePropertyName("SpeedMod"); writer.WriteValue(map.SpeedMod);
                     writer.WritePropertyName("AccMod"); writer.WriteValue(map.AccMod);
                     writer.WritePropertyName("SliceCount"); writer.WriteValue(map.SliceCount);
                 }
+                writer.WriteWhitespace("\n");
                 writer.WriteComment("Designdata");
                 {
                     writer.WritePropertyName("SongPath"); writer.WriteValue(map.SongPath);
                     writer.WritePropertyName("BackgroundPath"); writer.WriteValue(map.BackgroundPath);
                 }
+                writer.WriteWhitespace("\n");
                 writer.WriteComment("Notedata");
                 {
-                    writer.WritePropertyName("Notes"); writer.WriteRawValue(JsonConvert.SerializeObject(map.Notes, Formatting.Indented));
+                    writer.WritePropertyName("Notes");
+                    writer.WriteStartArray();
+                    foreach (Note note in map.Notes) {
+                        writer.WriteStartObject();
+                        {
+                            writer.WritePropertyName("time"); writer.WriteValue(note.time.Ms);
+                            writer.WritePropertyName("slice"); writer.WriteValue(note.slice);
+                        }
+                        writer.WriteEndObject();
+                    }
+                    writer.WriteEndArray();
                 }
             }
             writer.WriteEndObject();
         }
+        File.WriteAllText(fileName, sb.ToString());
     }
 
     public static void LoadSong(string songPath)
