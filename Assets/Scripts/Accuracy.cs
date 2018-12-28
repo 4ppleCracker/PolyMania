@@ -2,7 +2,7 @@
 
 public enum AccuracyType
 {
-    Amazing = 20, Excellent = 40, Good = 80, Okay = 110, Bad = 160, Horrendous = int.MaxValue, Miss = 0
+    Amazing = 150, Excellent = 400, Good = 800, Okay = 1600, Bad = 2600, Horrendous = int.MaxValue, Miss = 0
 }
 
 public class Accuracy {

@@ -27,6 +27,8 @@ public class Beatmap
     public AudioClip Song;
     public string SongPath;
 
+    public string version;
+
     //Modifiers
     public uint SliceCount;
     public float AccMod;

@@ -39,7 +39,7 @@ public struct Note
             AccuracyType type = AccuracyType.Horrendous;
             foreach (AccuracyType val in Enum.GetValues(typeof(AccuracyType)))
             {
-                if (acc < (int)val)
+                if (acc < ((int)val / Beatmap.CurrentlyLoaded.AccMod))
                 {
                     type = val;
                     break;

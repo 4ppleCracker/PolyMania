@@ -32,17 +32,76 @@ static class BeatmapStore
 
     public static Beatmap DeserializeBeatmap(string fileName)
     {
-        using (FileStream stream = new FileStream(fileName, FileMode.Open, FileAccess.Read, FileShare.None))
+        Beatmap beatmap = new Beatmap();
+
+        using (StreamReader stream = new StreamReader(fileName))
+        using (JsonReader reader = new JsonTextReader(stream))
         {
-            return (Beatmap)(new XmlSerializer(typeof(Beatmap)).Deserialize(stream));
+            reader.Read(); //Start
+            {
+                reader.Read(); //Version
+                beatmap.version = reader.ReadAsString();
+
+                reader.Read(); //Metadata
+                {
+                    reader.Read(); //Song name
+                    beatmap.SongName = reader.ReadAsString();
+
+                    reader.Read(); //Romanized song name
+                    beatmap.RomanizedSongName = reader.ReadAsString(); 
+
+                    reader.Read(); //Dificulty name
+                    beatmap.DifficultyName = reader.ReadAsString(); 
+                }
+                reader.Read(); //Modifierdata
+                {
+                    reader.Read(); //Speed mod
+                    beatmap.SpeedMod = (float)reader.ReadAsDouble(); 
+
+                    reader.Read(); //Acc mod
+                    beatmap.AccMod = (float)reader.ReadAsDouble();
+
+                    reader.Read(); //Slice count
+                    beatmap.SliceCount = (uint)reader.ReadAsInt32();
+                }
+                reader.Read(); //Filedata
+                {
+                    reader.Read(); //Song path
+                    beatmap.SongPath = reader.ReadAsString();
+
+                    reader.Read(); //Background path
+                    beatmap.BackgroundPath = reader.ReadAsString();
+                }
+                reader.Read(); //Notedata
+                {
+                    List<Note> notes = new List<Note>();
+                    reader.Read(); //Notes
+                    reader.Read(); //Start of array
+                    //Read start of object or end array and make sure its not an end array, if its not, parse the note
+                    while (reader.Read() && reader.TokenType != JsonToken.EndArray)
+                    {
+                        Note note = new Note();
+                        {
+                            reader.Read(); //Time
+                            note.time = new Time(ms: (int)reader.ReadAsInt32());
+
+                            reader.Read(); //Slice
+                            note.slice = (uint)reader.ReadAsInt32();
+                        }
+                        reader.Read(); //End of object
+                        notes.Add(note);
+                    }
+                    reader.Read(); //End of array
+                    beatmap.Notes = notes.ToArray();
+                }
+            }
+            reader.Read(); //End
         }
+
+        return beatmap;
     }
     public static void SerializeBeatmap(Beatmap map, string fileName)
     {
-        /*using (FileStream stream = new FileStream(fileName, FileMode.OpenOrCreate, FileAccess.Write))
-        {
-            new XmlSerializer(typeof(Beatmap)).Serialize(stream, map);
-        }*/
         StringBuilder sb = new StringBuilder();
         using (StringWriter stream = new StringWriter(sb))
         using (JsonWriter writer = new JsonTextWriter(stream))
@@ -51,10 +110,12 @@ static class BeatmapStore
 
             writer.WriteStartObject();
             {
+                writer.WritePropertyName("version"); writer.WriteValue("1.0");
                 writer.WriteWhitespace("\n");
                 writer.WriteComment("Metadata");
                 {
                     writer.WritePropertyName("SongName"); writer.WriteValue(map.SongName);
+                    writer.WritePropertyName("RomanizedSongName"); writer.WriteValue(map.RomanizedSongName);
                     writer.WritePropertyName("DifficultyName"); writer.WriteValue(map.DifficultyName);
                 }
                 writer.WriteWhitespace("\n");
@@ -65,7 +126,7 @@ static class BeatmapStore
                     writer.WritePropertyName("SliceCount"); writer.WriteValue(map.SliceCount);
                 }
                 writer.WriteWhitespace("\n");
-                writer.WriteComment("Designdata");
+                writer.WriteComment("Filedata");
                 {
                     writer.WritePropertyName("SongPath"); writer.WriteValue(map.SongPath);
                     writer.WritePropertyName("BackgroundPath"); writer.WriteValue(map.BackgroundPath);
