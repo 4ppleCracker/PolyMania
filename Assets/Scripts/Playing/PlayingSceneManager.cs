@@ -67,7 +67,7 @@ public class PlayingSceneManager : SingletonBehaviour<PlayingSceneManager> {
     public static void StartPlaying(Beatmap map, Texture2D loadedBackground = null, AudioClip loadedSong = null)
     {
         Beatmap.Load(map, map.BackgroundImage ?? loadedBackground, map.Song ?? loadedSong);
-        Initiate.Fade("PlayingScene", Color.black, 2);
+        Initiate.Fade("PlayingScene", Color.black, 2.5f);
     }
 
     public static void GotoResult()

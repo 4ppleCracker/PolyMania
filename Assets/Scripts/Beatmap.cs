@@ -1,4 +1,5 @@
 ﻿using NAudio.Wave;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -73,7 +74,7 @@ public class Beatmap
 
     public static Beatmap CurrentlyLoaded { get; private set; }
 
-    private static IEnumerable<Note> RemoveJumps(Note[] notes)
+    private static IEnumerable<Note> RemoveJumpsAndResetNotes(IEnumerable<Note> notes)
     {
         List<Note> toExclude = new List<Note>();
         foreach (Note note in notes)
@@ -94,7 +95,7 @@ public class Beatmap
     /// <param name="loadedSong">If you already have the song loaded, pass it here</param>
     public static void Load(Beatmap map, Texture2D loadedBackground = null, AudioClip loadedSong = null)
     {
-        map.Notes = RemoveJumps(map.Notes).ToArray();
+        map.Notes = RemoveJumpsAndResetNotes(map.Notes).ToArray();
 
         CurrentlyLoaded = map;
 

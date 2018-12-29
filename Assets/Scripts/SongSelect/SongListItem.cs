@@ -11,7 +11,7 @@ public class SongListItem : MonoBehaviour
     {
         if(SongNameText == null)
             SongNameText = transform.Find("SongName").GetComponent<TextMeshProUGUI>();
-        SongNameText.text = $"{info.SongName}\n[{info.DifficultyName}]";
+        SongNameText.text = $"{info.RomanizedSongName}\n[{info.DifficultyName}]";
 
         this.info = info;
     }
