@@ -1,5 +1,6 @@
 ﻿using Newtonsoft.Json;
 using Newtonsoft.Json.Bson;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -27,6 +28,15 @@ public class BeatmapStoreInfo
 
 static class BeatmapStore
 {
+    class UnsupportedVersionException : Exception
+    {
+        public override string Message => "This beatmap version is unsupported";
+    }
+    class InvalidBeatmapException : Exception
+    {
+        public override string Message => "This beatmap format is invalid";
+    }
+
     public const string DefaultSongPath = "Songs";
     public static List<BeatmapStoreInfo> Beatmaps;
 
@@ -35,67 +45,51 @@ static class BeatmapStore
         Beatmap beatmap = new Beatmap();
 
         using (StreamReader stream = new StreamReader(fileName))
-        using (JsonReader reader = new JsonTextReader(stream))
         {
-            reader.Read(); //Start
+            try
             {
-                reader.Read(); //Version
-                beatmap.version = reader.ReadAsString();
-
-                reader.Read(); //Metadata
+                JObject jObject = JObject.Parse(stream.ReadToEnd());
+                beatmap.version = (string)jObject["version"];
+                if (beatmap.version == "1.0")
                 {
-                    reader.Read(); //Song name
-                    beatmap.SongName = reader.ReadAsString();
+                    //Metadata
+                    beatmap.SongName = (string)jObject["SongName"];
+                    beatmap.RomanizedSongName = (string)jObject["RomanizedSongName"];
+                    beatmap.DifficultyName = (string)jObject["DifficultyName"];
 
-                    reader.Read(); //Romanized song name
-                    beatmap.RomanizedSongName = reader.ReadAsString(); 
+                    //Modifierdata
+                    beatmap.SpeedMod = (float)jObject["SpeedMod"];
+                    beatmap.AccMod = (float)jObject["AccMod"];
+                    beatmap.SliceCount = (uint)jObject["SliceCount"];
 
-                    reader.Read(); //Dificulty name
-                    beatmap.DifficultyName = reader.ReadAsString(); 
-                }
-                reader.Read(); //Modifierdata
-                {
-                    reader.Read(); //Speed mod
-                    beatmap.SpeedMod = (float)reader.ReadAsDouble(); 
+                    //Filedata
+                    beatmap.BackgroundPath = (string)jObject["BackgroundPath"];
+                    beatmap.SongPath = (string)jObject["SongPath"];
 
-                    reader.Read(); //Acc mod
-                    beatmap.AccMod = (float)reader.ReadAsDouble();
-
-                    reader.Read(); //Slice count
-                    beatmap.SliceCount = (uint)reader.ReadAsInt32();
-                }
-                reader.Read(); //Filedata
-                {
-                    reader.Read(); //Song path
-                    beatmap.SongPath = reader.ReadAsString();
-
-                    reader.Read(); //Background path
-                    beatmap.BackgroundPath = reader.ReadAsString();
-                }
-                reader.Read(); //Notedata
-                {
-                    List<Note> notes = new List<Note>();
-                    reader.Read(); //Notes
-                    reader.Read(); //Start of array
-                    //Read start of object or end array and make sure its not an end array, if its not, parse the note
-                    while (reader.Read() && reader.TokenType != JsonToken.EndArray)
+                    JArray Jnotes = (JArray)jObject["Notes"];
+                    beatmap.Notes = new Note[Jnotes.Count];
+                    for(int i = 0; i < Jnotes.Count; i++)
                     {
+                        JToken token = Jnotes[i];
                         Note note = new Note();
-                        {
-                            reader.Read(); //Time
-                            note.time = new Time(ms: (int)reader.ReadAsInt32());
-
-                            reader.Read(); //Slice
-                            note.slice = (uint)reader.ReadAsInt32();
-                        }
-                        reader.Read(); //End of object
-                        notes.Add(note);
+                        note.time = new Time(ms: (int)token["time"]);
+                        note.slice = (uint)token["slice"];
+                        beatmap.Notes[i] = note;
                     }
-                    reader.Read(); //End of array
-                    beatmap.Notes = notes.ToArray();
+                }
+                else
+                {
+                    throw new UnsupportedVersionException();
                 }
             }
-            reader.Read(); //End
+            catch(UnsupportedVersionException ex)
+            {
+                throw ex;
+            }
+            catch
+            {
+                throw new InvalidBeatmapException();
+            }
         }
 
         return beatmap;
@@ -110,7 +104,7 @@ static class BeatmapStore
 
             writer.WriteStartObject();
             {
-                writer.WritePropertyName("version"); writer.WriteValue("1.0");
+                writer.WritePropertyName("version"); writer.WriteValue("1.1");
                 writer.WriteWhitespace("\n");
                 writer.WriteComment("Metadata");
                 {
@@ -159,6 +153,11 @@ static class BeatmapStore
             if(file.EndsWith(".pmb"))
             {
                 Beatmap beatmap = DeserializeBeatmap(file);
+                if(beatmap == null)
+                {
+                    Debug.Log("Failed to load map " + file);
+                    continue;
+                } 
                 BeatmapStoreInfo beatmapStoreInfo = new BeatmapStoreInfo() {
                     MapPath = file,
                     SongPath = beatmap.SongPath,
