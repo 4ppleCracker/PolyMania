@@ -50,7 +50,7 @@ static class BeatmapStore
             {
                 JObject jObject = JObject.Parse(stream.ReadToEnd());
                 beatmap.version = (string)jObject["version"];
-                if (beatmap.version == "1.0")
+                if (beatmap.version == "1.1")
                 {
                     //Metadata
                     beatmap.SongName = (string)jObject["SongName"];
@@ -157,7 +157,8 @@ static class BeatmapStore
                 {
                     Debug.Log("Failed to load map " + file);
                     continue;
-                } 
+                }
+                beatmap.Fix();
                 BeatmapStoreInfo beatmapStoreInfo = new BeatmapStoreInfo() {
                     MapPath = file,
                     SongPath = beatmap.SongPath,
@@ -183,6 +184,7 @@ static class BeatmapStore
     }
     public static void LoadAll(string basePath=DefaultSongPath)
     {
+        if (!Directory.Exists(basePath)) return;
         var songPaths = Directory.EnumerateDirectories(basePath);
         Beatmaps = new List<BeatmapStoreInfo>(songPaths.Count());
         foreach (string songPath in songPaths)

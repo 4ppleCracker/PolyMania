@@ -95,14 +95,22 @@ public class Beatmap
     /// <param name="loadedSong">If you already have the song loaded, pass it here</param>
     public static void Load(Beatmap map, Texture2D loadedBackground = null, AudioClip loadedSong = null)
     {
-        map.Notes = RemoveJumpsAndResetNotes(map.Notes).ToArray();
+        if(!map.hasBeenFixed)
+            map.Fix();
 
         CurrentlyLoaded = map;
 
         map.Song = loadedSong ?? GetAudio(map.SongPath);
         map.BackgroundImage = loadedBackground ?? Helper.LoadPNG(map.BackgroundPath);
 
-        Debug.Log($"Loaded song {map.SongName}");
+        Debug.Log($"Loaded song {map.SongName}({map.GetUUID()})");
+    }
+    bool hasBeenFixed = false;
+    public void Fix()
+    {
+        Notes = RemoveJumpsAndResetNotes(Notes).ToArray();
+
+        hasBeenFixed = true;
     }
 
     public void Reload()
@@ -242,7 +250,7 @@ public class Beatmap
         StringBuilder builder = new StringBuilder((Notes.Length * 20) + SongName.Length);
         foreach(Note note in Notes)
         {
-            builder.Append(note.GetUUID().ToString());
+            builder.Append(note.GetUUID());
         }
         builder.Append(SongName);
         return builder.ToString();

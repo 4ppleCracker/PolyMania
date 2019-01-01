@@ -101,6 +101,8 @@ class SongSelectManager : SingletonBehaviour<SongSelectManager>
                     }
                 );
             }
+            else
+                Debug.Log($"No score for {info.SongName}({info.uuid})");
         }
     }
 

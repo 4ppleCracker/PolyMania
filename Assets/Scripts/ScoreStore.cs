@@ -79,7 +79,7 @@ static class ScoreStore
         }
 
         string encryptedScoreXml = Caesar(SerializeToString(score), 41);
-        doc.Root.Add(new XElement("score", new XAttribute("uuid", score.uuid), encryptedScoreXml));
+        doc.Root.Add(new XElement("score", encryptedScoreXml));
 
         XmlWriterSettings settings = new XmlWriterSettings
         {

@@ -76,9 +76,9 @@ public struct Note
                slice == note.slice;
     }
 
-    public long GetUUID()
+    public string GetUUID()
     {
-        return ((long)time.Ms << 32) | slice;
+        return time.Ms.ToString() + slice.ToString();
     }
 
     public Note(Time time, uint slice)
