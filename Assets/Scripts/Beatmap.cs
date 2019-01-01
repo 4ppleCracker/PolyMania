@@ -90,18 +90,30 @@ public class Beatmap
                 yield return new Note(note.time, note.slice);
         }
     }
+    private void ResetNotes()
+    {
+        Note[] notes = new Note[Notes.Length];
+        for(int i = 0; i < notes.Length; i++)
+        {
+            Note note = Notes[i];
+            notes[i] = new Note(new Time(ms: note.time.Ms), note.slice);
+        }
+        Notes = notes;
+    }
 
     /// <param name="loadedBackground">If you already have the background texture loaded, pass it here</param>
     /// <param name="loadedSong">If you already have the song loaded, pass it here</param>
     public static void Load(Beatmap map, Texture2D loadedBackground = null, AudioClip loadedSong = null)
     {
-        if(!map.hasBeenFixed)
+        if (!map.hasBeenFixed)
             map.Fix();
+        else
+            map.ResetNotes();
 
         CurrentlyLoaded = map;
 
-        map.Song = loadedSong ?? GetAudio(map.SongPath);
-        map.BackgroundImage = loadedBackground ?? Helper.LoadPNG(map.BackgroundPath);
+        map.Song = loadedSong ?? map.Song ?? GetAudio(map.SongPath);
+        map.BackgroundImage = loadedBackground ?? map.BackgroundImage ?? Helper.LoadPNG(map.BackgroundPath);
 
         Debug.Log($"Loaded song {map.SongName}({map.GetUUID()})");
     }

@@ -1,12 +1,37 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.SceneManagement;
 
 public class PlayingSceneManager : SingletonBehaviour<PlayingSceneManager> {
+
+    [SerializeField]
+    private long m_score;
+    public long Score {
+        get {
+            return m_score;
+        }
+        set {
+            m_score = value;
+            PlayingSceneManager.Instance.UpdateScoreText(Score);
+        }
+    }
+    [SerializeField]
+    private int m_combo;
+    public int Combo {
+        get {
+            return m_combo;
+        }
+        set {
+            m_combo = value;
+            PlayingSceneManager.Instance.UpdateComboText(Combo);
+        }
+    }
+    public int highestCombo;
 
     TextMeshProUGUI AccuracyText;
     TextMeshProUGUI ScoreText;
@@ -30,13 +55,18 @@ public class PlayingSceneManager : SingletonBehaviour<PlayingSceneManager> {
         AccuracyText = GameObject.Find("AccuracyText").GetComponent<TextMeshProUGUI>();
         ComboText = GameObject.Find("ComboText").GetComponent<TextMeshProUGUI>();
         ScoreText = GameObject.Find("ScoreText").GetComponent<TextMeshProUGUI>();
+        m_score = 0;
+        m_combo = 0;
+        highestCombo = 0;
         UpdateAccuracyText(100);
         UpdateComboText(0);
         UpdateScoreText(0);
         if (Beatmap.CurrentlyLoaded != null)
         {
-            Beatmap.CurrentlyLoaded.Song = Beatmap.GetAudio(Beatmap.CurrentlyLoaded.SongPath);
+            //set background and start the song with delay and fade time
             Helper.SetBackgroundImage(Beatmap.CurrentlyLoaded.BackgroundImage);
+            Beatmap.CurrentlyLoaded.Song = Beatmap.GetAudio(Beatmap.CurrentlyLoaded.SongPath);
+            Conductor.Instance.Play(Beatmap.CurrentlyLoaded.Song, delay: 1000, fadeTime: 1000);
         } else
         {
             Debug.Log("No beatmap is loaded");
@@ -100,9 +130,51 @@ public class PlayingSceneManager : SingletonBehaviour<PlayingSceneManager> {
         SceneManager.sceneLoaded -= LoadResultsScene;
     }
 
+    public Accuracy ClickNote(Note note)
+    {
+        //Calculate accuracy for note
+        int accuracy = (int)(note.TimeToClick.Ms * (Beatmap.CurrentlyLoaded.AccMod / 15));
+
+        //Set the data
+        note.clicked = true;
+        note.trueAccuracy = accuracy;
+
+        //save the note into the beatmap
+        Beatmap.CurrentlyLoaded.Notes[Beatmap.CurrentlyLoaded.GetIndexForNote(note)] = note;
+
+        //add combo and score
+        Combo++;
+        Score += NotesController.GetScoreForNote(Combo, note.Accuracy);
+
+        //update accuracy text
+        PlayingSceneManager.Instance.UpdateAccuracyText(CurrentAccuracy());
+
+        return note.Accuracy;
+    }
+
+    public int CurrentAccuracy()
+    {
+        //Amount of notes hit
+        int total = Beatmap.CurrentlyLoaded.PlayedNotes.Count();
+
+        //If you have yet hit any notes, you get 100% accuracy
+        if (total == 0)
+            return 100;
+
+        //Gets the total accuracy percentages and divides by total notes hit to get the average accuracy
+        int totalAcc = 0;
+        for (int i = 0; i < total; i++)
+        {
+            totalAcc += Beatmap.CurrentlyLoaded.Notes[i].Accuracy.ToPercent();
+        }
+        return totalAcc / total;
+    }
+
     public void Restart()
     {
-        StartPlaying(Beatmap.CurrentlyLoaded);
+        NotesController.Instance.Reset();
+        Beatmap.CurrentlyLoaded.Reload();
+        Start();
     }
     bool paused;
     public void Pause()
@@ -127,6 +199,31 @@ public class PlayingSceneManager : SingletonBehaviour<PlayingSceneManager> {
         if (Input.GetKeyDown(KeyCode.Escape))
         {
             Pause();
+        }
+        //if current combo is higher than higest combo, set highest combo to current combo
+        if (highestCombo < Combo)
+            highestCombo = Combo;
+        //Update accuracy
+        UpdateAccuracyText(CurrentAccuracy());
+    }
+
+    public void InitResults()
+    {
+        //create result instance
+        result = new Result
+        {
+            totalAccuracy = CurrentAccuracy(),
+            highestCombo = highestCombo,
+            score = Score,
+            uuid = Beatmap.CurrentlyLoaded.GetUUID(),
+            date = DateTime.Now,
+
+            resultNotes = new ResultNote[Beatmap.CurrentlyLoaded.Notes.Length]
+        };
+        for (int i = 0; i < Beatmap.CurrentlyLoaded.Notes.Length; i++)
+        {
+            Note note = Beatmap.CurrentlyLoaded.Notes[i];
+            result.resultNotes[i] = (ResultNote)note;
         }
     }
 }

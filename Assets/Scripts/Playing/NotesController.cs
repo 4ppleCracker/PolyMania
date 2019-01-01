@@ -13,52 +13,10 @@ public class NotesController : SingletonBehaviour<NotesController> {
     public static float ShowTime => 4000 / Beatmap.CurrentlyLoaded.SpeedMod;
     public static float TimeToMiss => 3000 / Beatmap.CurrentlyLoaded.AccMod;
 
-    [SerializeField]
-    private long m_score;
-    public long Score {
-        get {
-            return m_score;
-        }
-        set {
-            m_score = value;
-            PlayingSceneManager.Instance.UpdateScoreText(Score);
-        }
-    }
-    [SerializeField]
-    private int m_combo;
-    public int Combo {
-        get {
-            return m_combo;
-        }
-        set {
-            m_combo = value;
-            PlayingSceneManager.Instance.UpdateComboText(Combo);
-        }
-    }
-    public int highestCombo;
-
-    int GetScoreForNote(int combo, Accuracy acc)
+    public static int GetScoreForNote(int combo, Accuracy acc)
     {
         return combo * acc.ToPercent();
-    }
-
-    public int CurrentAccuracy()
-    {
-        //Amount of notes hit
-        int total = Beatmap.CurrentlyLoaded.PlayedNotes.Count();
-
-        //If you have yet hit any notes, you get 100% accuracy
-        if (total == 0)
-            return 100;
-
-        //Gets the total accuracy percentages and divides by total notes hit to get the average accuracy
-        int totalAcc = 0;
-        for (int i = 0; i < total; i++)
-        {
-            totalAcc += Beatmap.CurrentlyLoaded.Notes[i].Accuracy.ToPercent();
-        }
-        return totalAcc / total;
-    }
+    }  
 
     /// <summary>
     /// Prefab of the playing note
@@ -70,44 +28,20 @@ public class NotesController : SingletonBehaviour<NotesController> {
     /// </summary>
     public Vector3 NoteSize;
 
+    public void Reset()
+    {
+        foreach (NoteObject obj in FindObjectsOfType<NoteObject>())
+            Destroy(obj.gameObject);
+    }
+
     // Use this for initialization
     public void Start ()
     {
-        //if a beatmap is loaded
-        if (Beatmap.CurrentlyLoaded != null)
-        {
-            //set background and start the song with delay and fade time
-            Helper.SetBackgroundImage(Beatmap.CurrentlyLoaded.BackgroundImage);
-            Conductor.Instance.Play(Beatmap.CurrentlyLoaded.Song, delay: 1000, fadeTime: 1000);
-        }
-
         //Load note prefab from resources
         NotePrefab = Resources.Load<GameObject>("Objects/Note");
 
         //load size of the note
         NoteSize = NotePrefab.GetComponent<MeshFilter>().sharedMesh.bounds.max;
-    }
-
-    public Accuracy ClickNote(Note note)
-    {
-        //Calculate accuracy for note
-        int accuracy = (int)(note.TimeToClick.Ms * (Beatmap.CurrentlyLoaded.AccMod / 15));
-
-        //Set the data
-        note.clicked = true;
-        note.trueAccuracy = accuracy;
-
-        //save the note into the beatmap
-        Beatmap.CurrentlyLoaded.Notes[Beatmap.CurrentlyLoaded.GetIndexForNote(note)] = note;
-
-        //add combo and score
-        Combo++;
-        Score += GetScoreForNote(Combo, note.Accuracy);
-
-        //update accuracy text
-        PlayingSceneManager.Instance.UpdateAccuracyText(CurrentAccuracy());
-
-        return note.Accuracy;
     }
 
     public void CheckClick()
@@ -122,7 +56,7 @@ public class NotesController : SingletonBehaviour<NotesController> {
             if (note.slice == AimController.Instance.SelectedSlice && Conductor.Instance.Position.IsWithin(note.HitTimeFrame) && !note.clicked)
             {
                 //click the note
-                Accuracy accuracy = ClickNote(note);
+                Accuracy accuracy = PlayingSceneManager.Instance.ClickNote(note);
 
                 //TODO display hit accuracy
 
@@ -182,45 +116,18 @@ public class NotesController : SingletonBehaviour<NotesController> {
                     }
                 }
             }
-            //if current combo is higher than higest combo, set highest combo to current combo
-            if (highestCombo < Combo)
-                highestCombo = Combo;
         }
         else
         {
             //Fade out the music
             StartCoroutine(Helper.FadeOut(Conductor.Instance.Player, 1)); 
             //Load the results which will be sent to result manager
-            InitResults();
+            PlayingSceneManager.Instance.InitResults();
             //load the result scene
             PlayingSceneManager.GotoResult();
 
             //make sure that update function isnt called anymore
             noUpdate = true;
         }
-    }
-
-    public void InitResults()
-    {
-        //create result instance
-        Result result = new Result();
-
-        //set result the result notes
-        result.resultNotes = new ResultNote[Beatmap.CurrentlyLoaded.Notes.Length];
-        for (int i = 0; i < Beatmap.CurrentlyLoaded.Notes.Length; i++)
-        {
-            Note note = Beatmap.CurrentlyLoaded.Notes[i];
-            result.resultNotes[i] = (ResultNote)note;
-        }
-
-        //set accuracy, combo and score
-        result.totalAccuracy = CurrentAccuracy();
-        result.highestCombo = highestCombo;
-        result.score = Score;
-        result.uuid = Beatmap.CurrentlyLoaded.GetUUID();
-        result.date = DateTime.Now;
-
-        //put the result into playing scene manager so it can be pushed to result scene manager by GotoResult
-        PlayingSceneManager.Instance.result = result;
     }
 }

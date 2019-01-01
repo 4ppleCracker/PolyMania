@@ -56,9 +56,7 @@ public class NoteObject : MonoBehaviour {
 
             Beatmap.CurrentlyLoaded.Notes[noteIndex] = note;
 
-            NotesController.Instance.Combo = 0;
-
-            PlayingSceneManager.Instance.UpdateAccuracyText(NotesController.Instance.CurrentAccuracy());
+            PlayingSceneManager.Instance.Combo = 0;
 
             Destroy(gameObject);
         }
