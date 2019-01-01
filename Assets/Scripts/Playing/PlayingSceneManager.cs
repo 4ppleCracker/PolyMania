@@ -17,7 +17,7 @@ public class PlayingSceneManager : SingletonBehaviour<PlayingSceneManager> {
         }
         set {
             m_score = value;
-            PlayingSceneManager.Instance.UpdateScoreText(Score);
+            UpdateScoreText(Score);
         }
     }
     [SerializeField]
@@ -28,7 +28,7 @@ public class PlayingSceneManager : SingletonBehaviour<PlayingSceneManager> {
         }
         set {
             m_combo = value;
-            PlayingSceneManager.Instance.UpdateComboText(Combo);
+            UpdateComboText(Combo);
         }
     }
     public int highestCombo;
@@ -48,6 +48,24 @@ public class PlayingSceneManager : SingletonBehaviour<PlayingSceneManager> {
     public void UpdateScoreText(long score)
     {
         ScoreText.text = score.ToString("#,##0");
+    }
+
+    public int CurrentAccuracy()
+    {
+        //Amount of notes hit
+        int total = Beatmap.CurrentlyLoaded.PlayedNotes.Count();
+
+        //If you have yet hit any notes, you get 100% accuracy
+        if (total == 0)
+            return 100;
+
+        //Gets the total accuracy percentages and divides by total notes hit to get the average accuracy
+        int totalAcc = 0;
+        for (int i = 0; i < total; i++)
+        {
+            totalAcc += Beatmap.CurrentlyLoaded.Notes[i].Accuracy.ToPercent();
+        }
+        return totalAcc / total;
     }
 
     private void Start()
@@ -76,22 +94,6 @@ public class PlayingSceneManager : SingletonBehaviour<PlayingSceneManager> {
 
     public Result result = null;
 
-    int holdTime = 250;
-    IEnumerator CheckRHold()
-    {
-        DateTime end = DateTime.Now.AddMilliseconds(holdTime);
-        while (DateTime.Now < end)
-        {
-            if (!Input.GetKey(KeyCode.R))
-            {
-                yield break;
-            }
-            yield return new WaitForEndOfFrame();
-        }
-        Debug.Log("Restarting..");
-        Restart();
-    }
-
     /// <param name="loadedBackground">If you already have the background texture loaded, pass it here</param>
     /// <param name="loadedSong">If you already have the song loaded, pass it here</param>
     public static void StartPlaying(Beatmap map, Texture2D loadedBackground = null, AudioClip loadedSong = null)
@@ -104,7 +106,7 @@ public class PlayingSceneManager : SingletonBehaviour<PlayingSceneManager> {
     {
         DontDestroyOnLoad(Instance);
         SceneManager.sceneLoaded += LoadResultsScene;
-        Initiate.Fade("ResultsScene", Color.black, 1.5f);
+        Initiate.Fade("ResultsScene", Color.black, 2f);
     }
     private static void LoadResultsScene(Scene resultScene, LoadSceneMode y)
     {
@@ -146,36 +148,31 @@ public class PlayingSceneManager : SingletonBehaviour<PlayingSceneManager> {
         Combo++;
         Score += NotesController.GetScoreForNote(Combo, note.Accuracy);
 
-        //update accuracy text
-        PlayingSceneManager.Instance.UpdateAccuracyText(CurrentAccuracy());
-
         return note.Accuracy;
     }
 
-    public int CurrentAccuracy()
+    int holdTime = 250;
+    IEnumerator CheckRHold()
     {
-        //Amount of notes hit
-        int total = Beatmap.CurrentlyLoaded.PlayedNotes.Count();
-
-        //If you have yet hit any notes, you get 100% accuracy
-        if (total == 0)
-            return 100;
-
-        //Gets the total accuracy percentages and divides by total notes hit to get the average accuracy
-        int totalAcc = 0;
-        for (int i = 0; i < total; i++)
+        DateTime end = DateTime.Now.AddMilliseconds(holdTime);
+        while (DateTime.Now < end)
         {
-            totalAcc += Beatmap.CurrentlyLoaded.Notes[i].Accuracy.ToPercent();
+            if (!Input.GetKey(KeyCode.R))
+            {
+                yield break;
+            }
+            yield return new WaitForEndOfFrame();
         }
-        return totalAcc / total;
+        Debug.Log("Restarting..");
+        Restart();
     }
-
     public void Restart()
     {
         NotesController.Instance.Reset();
         Beatmap.CurrentlyLoaded.Reload();
         Start();
     }
+
     bool paused;
     public void Pause()
     {

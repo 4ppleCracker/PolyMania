@@ -66,14 +66,9 @@ public class NotesController : SingletonBehaviour<NotesController> {
         }
     }
 
-    //used for when we want to kill notes controller but cant destroy it due to fading
-    bool noUpdate = false;
-
     // Update is called once per frame
     void Update ()
     {
-        if (noUpdate) return;
-
         //dont do logic if there is no song loaded
         if (Beatmap.CurrentlyLoaded == null) return;
         //dont do logic if there are no notes left
@@ -126,8 +121,7 @@ public class NotesController : SingletonBehaviour<NotesController> {
             //load the result scene
             PlayingSceneManager.GotoResult();
 
-            //make sure that update function isnt called anymore
-            noUpdate = true;
+            Destroy(gameObject);
         }
     }
 }
