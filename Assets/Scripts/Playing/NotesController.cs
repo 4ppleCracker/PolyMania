@@ -15,7 +15,7 @@ public class NotesController : SingletonBehaviour<NotesController> {
 
     public static int GetScoreForNote(int combo, Accuracy acc)
     {
-        return combo * acc.ToPercent();
+        return 1000 * (acc.ToPercent() / 100) + combo;
     }  
 
     /// <summary>
