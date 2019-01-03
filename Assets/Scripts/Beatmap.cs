@@ -136,7 +136,7 @@ public class Beatmap
     {
 
         // convert two bytes to one float in the range -1 to 1
-        static float bytesToFloat(byte firstByte, byte secondByte)
+        static float BytesToFloat(byte firstByte, byte secondByte)
         {
             // convert two bytes to one short (little endian)
             short s = (short)((secondByte << 8) | firstByte);
@@ -144,7 +144,7 @@ public class Beatmap
             return s / 32768.0F;
         }
 
-        static int bytesToInt(byte[] bytes, int offset = 0)
+        static int BytesToInt(byte[] bytes, int offset = 0)
         {
             int value = 0;
             for (int i = 0; i < 4; i++)
@@ -167,7 +167,7 @@ public class Beatmap
             ChannelCount = wav[22];     // Forget byte 23 as 99.999% of WAVs are 1 or 2 channels
 
             // Get the frequency
-            Frequency = bytesToInt(wav, 24);
+            Frequency = BytesToInt(wav, 24);
 
             // Get past all the other sub chunks to get to the data subchunk:
             int pos = 12;   // First Subchunk ID from 12 to 16
@@ -194,11 +194,11 @@ public class Beatmap
             int i = 0;
             while (pos < wav.Length)
             {
-                LeftChannel[i] = bytesToFloat(wav[pos], wav[pos + 1]);
+                LeftChannel[i] = BytesToFloat(wav[pos], wav[pos + 1]);
                 pos += 2;
                 if (ChannelCount == 2)
                 {
-                    RightChannel[i] = bytesToFloat(wav[pos], wav[pos + 1]);
+                    RightChannel[i] = BytesToFloat(wav[pos], wav[pos + 1]);
                     pos += 2;
                 }
                 i++;
@@ -210,32 +210,35 @@ public class Beatmap
             return string.Format("[WAV: LeftChannel={0}, RightChannel={1}, ChannelCount={2}, SampleCount={3}, Frequency={4}]", LeftChannel, RightChannel, ChannelCount, SampleCount, Frequency);
         }
     }
-    private static MemoryStream AudioMemStream(WaveStream waveStream)
+    class Mp3
     {
-        MemoryStream outputStream = new MemoryStream();
-        using (WaveFileWriter waveFileWriter = new WaveFileWriter(outputStream, waveStream.WaveFormat))
+        private static MemoryStream AudioMemStream(WaveStream waveStream)
         {
-            byte[] bytes = new byte[waveStream.Length];
-            waveStream.Position = 0;
-            waveStream.Read(bytes, 0, (int)waveStream.Length);
-            waveFileWriter.Write(bytes, 0, bytes.Length);
-            waveFileWriter.Flush();
+            MemoryStream outputStream = new MemoryStream();
+            using (WaveFileWriter waveFileWriter = new WaveFileWriter(outputStream, waveStream.WaveFormat))
+            {
+                byte[] bytes = new byte[waveStream.Length];
+                waveStream.Position = 0;
+                waveStream.Read(bytes, 0, (int)waveStream.Length);
+                waveFileWriter.Write(bytes, 0, bytes.Length);
+                waveFileWriter.Flush();
+            }
+            return outputStream;
         }
-        return outputStream;
-    }
-    private static AudioClip GetMp3Audio(string name, byte[] data)
-    {
-        // Load the data into a stream
-        MemoryStream mp3stream = new MemoryStream(data);
-        // Convert the data in the stream to WAV format
-        Mp3FileReader mp3audio = new Mp3FileReader(mp3stream);
-        // Convert to WAV data
-        WAV wav = new WAV(AudioMemStream(mp3audio).ToArray());
-        Debug.Log(wav);
-        AudioClip audioClip = AudioClip.Create(name, wav.SampleCount, 1, wav.Frequency, false);
-        audioClip.SetData(wav.LeftChannel, 0);
-        // Return the clip
-        return audioClip;
+        public static AudioClip GetMp3Audio(string name, byte[] data)
+        {
+            // Load the data into a stream
+            MemoryStream mp3stream = new MemoryStream(data);
+            // Convert the data in the stream to WAV format
+            Mp3FileReader mp3audio = new Mp3FileReader(mp3stream);
+            // Convert to WAV data
+            WAV wav = new WAV(AudioMemStream(mp3audio).ToArray());
+            Debug.Log(wav);
+            AudioClip audioClip = AudioClip.Create(name, wav.SampleCount, 1, wav.Frequency, false);
+            audioClip.SetData(wav.LeftChannel, 0);
+            // Return the clip
+            return audioClip;
+        }
     }
     public static AudioClip GetAudio(string path)
     {
@@ -245,7 +248,7 @@ public class Beatmap
         {
             case ".mp3":
             {
-                return GetMp3Audio(Path.GetFileName(path), data);
+                return Mp3.GetMp3Audio(Path.GetFileName(path), data);
             }
             case ".wav":
                 return WavUtility.ToAudioClip(data);
@@ -265,7 +268,18 @@ public class Beatmap
             builder.Append(note.GetUUID());
         }
         builder.Append(SongName);
-        return builder.ToString();
+        return HashSha256(builder.ToString());
+    }
+
+    static string HashSha256(string input)
+    {
+        byte[] crypto = new System.Security.Cryptography.SHA256Managed().ComputeHash(Encoding.UTF8.GetBytes(input));
+        var hash = new StringBuilder(crypto.Length);
+        foreach (byte theByte in crypto)
+        {
+            hash.Append(theByte.ToString("x2"));
+        }
+        return hash.ToString();
     }
 
     class Mania
