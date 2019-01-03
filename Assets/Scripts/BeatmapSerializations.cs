@@ -57,6 +57,9 @@ public static class BeatmapSerializations
                 beatmap.SongName = (string)jObject["SongName"];
                 beatmap.RomanizedSongName = (string)jObject["RomanizedSongName"];
                 beatmap.DifficultyName = (string)jObject["DifficultyName"];
+                beatmap.Author = (string)jObject["Author"];
+                beatmap.Artist = (string)jObject["Artist"];
+                beatmap.RomanizedArtist = (string)jObject["RomanizedArtist"];
 
                 //Modifierdata
                 beatmap.SpeedMod = (float)jObject["SpeedMod"];

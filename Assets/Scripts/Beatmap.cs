@@ -19,6 +19,8 @@ public class Beatmap
     public string RomanizedSongName;
     public string DifficultyName;
     public string Author;
+    public string Artist;
+    public string RomanizedArtist;
 
     //Data
     public Note[] Notes;
@@ -322,7 +324,10 @@ public class Beatmap
                 BackgroundPath = Path.Combine(osuSongPath, osuBeatmap.EventsSection.BackgroundImage),
                 DifficultyName = osuBeatmap.MetadataSection.Version,
                 AccMod = osuBeatmap.DifficultySection.OverallDifficulty,
-                SpeedMod = osuBeatmap.DifficultySection.ApproachRate
+                SpeedMod = osuBeatmap.DifficultySection.ApproachRate,
+                Author = osuBeatmap.MetadataSection.Creator,
+                Artist = osuBeatmap.MetadataSection.Artist,
+                RomanizedArtist = osuBeatmap.MetadataSection.ArtistUnicode
             };
             return beatmap;
         }

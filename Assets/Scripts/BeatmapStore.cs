@@ -48,21 +48,24 @@ public static class BeatmapStore
                 writer.WriteWhitespace("\n");
                 writer.WriteComment("Metadata");
                 {
-                    writer.WritePropertyName("SongName"); writer.WriteValue(map.SongName);
+                    writer.WritePropertyName("SongName");          writer.WriteValue(map.SongName);
                     writer.WritePropertyName("RomanizedSongName"); writer.WriteValue(map.RomanizedSongName);
-                    writer.WritePropertyName("DifficultyName"); writer.WriteValue(map.DifficultyName);
+                    writer.WritePropertyName("DifficultyName");    writer.WriteValue(map.DifficultyName);
+                    writer.WritePropertyName("Author");            writer.WriteValue(map.Author);
+                    writer.WritePropertyName("Artist");            writer.WriteValue(map.Artist);
+                    writer.WritePropertyName("RomanizedArtist");   writer.WriteValue(map.RomanizedArtist);
                 }
                 writer.WriteWhitespace("\n");
                 writer.WriteComment("Modifierdata");
                 {
-                    writer.WritePropertyName("SpeedMod"); writer.WriteValue(map.SpeedMod);
-                    writer.WritePropertyName("AccMod"); writer.WriteValue(map.AccMod);
+                    writer.WritePropertyName("SpeedMod");   writer.WriteValue(map.SpeedMod);
+                    writer.WritePropertyName("AccMod");     writer.WriteValue(map.AccMod);
                     writer.WritePropertyName("SliceCount"); writer.WriteValue(map.SliceCount);
                 }
                 writer.WriteWhitespace("\n");
                 writer.WriteComment("Filedata");
                 {
-                    writer.WritePropertyName("SongPath"); writer.WriteValue(map.SongPath);
+                    writer.WritePropertyName("SongPath");       writer.WriteValue(map.SongPath);
                     writer.WritePropertyName("BackgroundPath"); writer.WriteValue(map.BackgroundPath);
                 }
                 writer.WriteWhitespace("\n");
@@ -74,7 +77,7 @@ public static class BeatmapStore
                     {
                         writer.WriteStartObject();
                         {
-                            writer.WritePropertyName("time"); writer.WriteValue(note.time.Ms);
+                            writer.WritePropertyName("time");  writer.WriteValue(note.time.Ms);
                             writer.WritePropertyName("slice"); writer.WriteValue(note.slice);
                         }
                         writer.WriteEndObject();
