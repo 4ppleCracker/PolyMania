@@ -5,6 +5,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using System.IO;
 using System.Collections.Generic;
+using Newtonsoft.Json.Linq;
 
 public static class Helper
 {
@@ -78,6 +79,19 @@ public static class Helper
             {
                 yield return obj;
             }
+        }
+    }
+    public static bool TryParseJObject(string json, out JObject obj)
+    {
+        try
+        {
+            obj = JObject.Parse(json);
+            return true;
+        }
+        catch
+        {
+            obj = null;
+            return false;
         }
     }
 }

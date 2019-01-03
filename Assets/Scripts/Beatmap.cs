@@ -18,6 +18,7 @@ public class Beatmap
     public string SongName;
     public string RomanizedSongName;
     public string DifficultyName;
+    public string Author;
 
     //Data
     public Note[] Notes;

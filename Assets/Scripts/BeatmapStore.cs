@@ -1,6 +1,5 @@
 ﻿using Newtonsoft.Json;
 using Newtonsoft.Json.Bson;
-using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -26,73 +25,14 @@ public class BeatmapStoreInfo
     }
 }
 
-static class BeatmapStore
+public static class BeatmapStore
 {
-    class UnsupportedVersionException : Exception
-    {
-        public override string Message => "This beatmap version is unsupported";
-    }
-    class InvalidBeatmapException : Exception
-    {
-        public override string Message => "This beatmap format is invalid";
-    }
-
     public const string DefaultSongPath = "Songs";
     public static List<BeatmapStoreInfo> Beatmaps;
 
     public static Beatmap DeserializeBeatmap(string fileName)
     {
-        Beatmap beatmap = new Beatmap();
-
-        using (StreamReader stream = new StreamReader(fileName))
-        {
-            try
-            {
-                JObject jObject = JObject.Parse(stream.ReadToEnd());
-                beatmap.version = (string)jObject["version"];
-                if (beatmap.version == "1.1")
-                {
-                    //Metadata
-                    beatmap.SongName = (string)jObject["SongName"];
-                    beatmap.RomanizedSongName = (string)jObject["RomanizedSongName"];
-                    beatmap.DifficultyName = (string)jObject["DifficultyName"];
-
-                    //Modifierdata
-                    beatmap.SpeedMod = (float)jObject["SpeedMod"];
-                    beatmap.AccMod = (float)jObject["AccMod"];
-                    beatmap.SliceCount = (uint)jObject["SliceCount"];
-
-                    //Filedata
-                    beatmap.BackgroundPath = (string)jObject["BackgroundPath"];
-                    beatmap.SongPath = (string)jObject["SongPath"];
-
-                    JArray Jnotes = (JArray)jObject["Notes"];
-                    beatmap.Notes = new Note[Jnotes.Count];
-                    for(int i = 0; i < Jnotes.Count; i++)
-                    {
-                        JToken token = Jnotes[i];
-                        Note note = new Note();
-                        note.time = new Time(ms: (int)token["time"]);
-                        note.slice = (uint)token["slice"];
-                        beatmap.Notes[i] = note;
-                    }
-                }
-                else
-                {
-                    throw new UnsupportedVersionException();
-                }
-            }
-            catch(UnsupportedVersionException ex)
-            {
-                throw ex;
-            }
-            catch
-            {
-                throw new InvalidBeatmapException();
-            }
-        }
-
-        return beatmap;
+        return BeatmapSerializations.GetSerializer(fileName).Deserialize();
     }
     public static void SerializeBeatmap(Beatmap map, string fileName)
     {
@@ -130,7 +70,8 @@ static class BeatmapStore
                 {
                     writer.WritePropertyName("Notes");
                     writer.WriteStartArray();
-                    foreach (Note note in map.Notes) {
+                    foreach (Note note in map.Notes)
+                    {
                         writer.WriteStartObject();
                         {
                             writer.WritePropertyName("time"); writer.WriteValue(note.time.Ms);
