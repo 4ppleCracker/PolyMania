@@ -1,8 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-
-public class MainMenuManager : SingletonBehaviour<MainMenuManager> {
+﻿public class MainMenuManager : SingletonBehaviour<MainMenuManager> {
 
 	// Use this for initialization
 	void Start () {

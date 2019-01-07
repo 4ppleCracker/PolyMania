@@ -1,13 +1,8 @@
 ﻿using Newtonsoft.Json;
-using Newtonsoft.Json.Bson;
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Runtime.Serialization;
 using System.Text;
-using System.Threading.Tasks;
-using System.Xml.Serialization;
 using UnityEngine;
 
 public class BeatmapStoreInfo

@@ -1,11 +1,4 @@
-﻿using System;
-using System.Collections;
-using System.Linq;
-using System.Reflection;
-using System.Runtime.CompilerServices;
-using System.Threading;
-using UnityEngine;
-using UnityEngine.SceneManagement;
+﻿using UnityEngine;
 
 public class NotesController : SingletonBehaviour<NotesController> {
 
@@ -15,7 +8,11 @@ public class NotesController : SingletonBehaviour<NotesController> {
 
     public static int GetScoreForNote(int combo, Accuracy acc)
     {
-        return 1000 * (acc.ToPercent() / 100) + combo;
+        float decimalPercent = (float)acc.ToPercent() / 100;
+
+        int accuracyScore = (int)(1000 * decimalPercent);
+        int comboScore = combo;
+        return accuracyScore + comboScore;
     }  
 
     /// <summary>

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 public class FunctionalComparer<T> : IComparer<T>
 {
-    private Func<T, T, int> comparer;
+    private readonly Func<T, T, int> comparer;
     public FunctionalComparer(Func<T, T, int> comparer)
     {
         this.comparer = comparer;

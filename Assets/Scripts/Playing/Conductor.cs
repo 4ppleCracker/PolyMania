@@ -1,7 +1,5 @@
 ﻿using System.Collections;
 using UnityEngine;
-using Unity.Collections;
-using System.Threading.Tasks;
 using System;
 
 [RequireComponent(typeof(AudioSource))]
