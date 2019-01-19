@@ -21,6 +21,7 @@ public class Result
     public long score;
     public string uuid;
     public DateTime date;
+    public Replay replay;
 
     public int GetCountForAccuracy(AccuracyType type)
     {

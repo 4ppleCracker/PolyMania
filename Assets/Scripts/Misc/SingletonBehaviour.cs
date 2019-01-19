@@ -14,5 +14,8 @@ public abstract class SingletonBehaviour<T> : MonoBehaviour where T : SingletonB
             return instance;
         }
     }
-    protected static T CreateMe() => instance = new GameObject(nameof(T), typeof(T)).GetComponent<T>();
+    protected static T CreateMe()
+    {
+        return instance = new GameObject(nameof(T), typeof(T)).GetComponent<T>();
+    }
 }

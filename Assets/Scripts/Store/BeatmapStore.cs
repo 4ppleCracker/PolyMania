@@ -27,7 +27,7 @@ public static class BeatmapStore
 
     public static Beatmap DeserializeBeatmap(string fileName)
     {
-        return BeatmapSerializations.GetSerializer(fileName).Deserialize();
+        return BeatmapSerializations.GetSerializer(fileName).Invoke();
     }
     public static void SerializeBeatmap(Beatmap map, string fileName)
     {

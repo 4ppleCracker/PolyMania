@@ -13,7 +13,7 @@ public static class BeatmapSerializations
         public override string Message => "This beatmap format is invalid";
     }
 
-    public static BeatmapSerializer GetSerializer(string fileName)
+    public static Func<Beatmap> GetSerializer(string fileName)
     {
         using (StreamReader stream = new StreamReader(fileName))
         {
@@ -26,10 +26,7 @@ public static class BeatmapSerializations
                     string version = (string)jObject["version"];
                     if (version == "1.1")
                     {
-                        return new Version1_1()
-                        {
-                            jObject = jObject
-                        };
+                        return () => Version1_1.Deserialize(jObject);
                     }
                     else
                     {
@@ -40,16 +37,9 @@ public static class BeatmapSerializations
         }
         throw new InvalidBeatmapException();
     }
-
-    public abstract class BeatmapSerializer
+    private static class Version1_1
     {
-        public abstract Beatmap Deserialize();
-    }
-
-    private class Version1_1 : BeatmapSerializer
-    {
-        internal JObject jObject;
-        public override Beatmap Deserialize()
+        public static Beatmap Deserialize(JObject jObject)
         {
             Beatmap beatmap = new Beatmap();
             {
