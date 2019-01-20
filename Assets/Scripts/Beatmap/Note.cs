@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Xml.Serialization;
 
 public class TimeFrame
@@ -77,6 +78,14 @@ public struct Note
     public string GetUUID()
     {
         return time.Ms.ToString() + slice.ToString();
+    }
+
+    public override int GetHashCode()
+    {
+        var hashCode = 750083029;
+        hashCode = hashCode * -1521134295 + EqualityComparer<Time>.Default.GetHashCode(time);
+        hashCode = hashCode * -1521134295 + slice.GetHashCode();
+        return hashCode;
     }
 
     public Note(Time time, uint slice)

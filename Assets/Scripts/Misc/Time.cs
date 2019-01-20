@@ -1,9 +1,29 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
+
+public class TimeConverter : JsonConverter
+{
+    public override bool CanConvert(Type objectType) => objectType == typeof(Time);
+
+    public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
+    {
+        Time time = (value as Time?).Value;
+        writer.WriteValue(time.Ms);
+    }
+
+    public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+    {
+        int ms = reader.ReadAsInt32().Value;
+        return new Time(ms);
+    }
+}
 
 [Serializable]
+[JsonConverter(typeof(TimeConverter))]
 public struct Time : IComparable<Time>, IEquatable<Time>
 {
     public int Ms;
+    [JsonIgnore]
     public float Sec => Ms / 1000;
 
     public Time(int ms)

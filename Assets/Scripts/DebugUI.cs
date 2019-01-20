@@ -30,7 +30,14 @@ public class DebugUI : SingletonBehaviour<DebugUI> {
     {
         if(isDebug)
         {
-            
+            switch(SceneManager.GetActiveScene().name)
+            {
+                case "PlayingScene":
+                {
+                    GUILayout.Label("Replay Events Length: " + PlayingSceneManager.Instance.replay.events.Count);
+                    if (GUILayout.Button("End Map")) PlayingSceneManager.Instance.EndMap();
+                } break;
+            }
         }
     }
 }

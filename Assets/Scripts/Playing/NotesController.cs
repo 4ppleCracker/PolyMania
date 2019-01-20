@@ -41,8 +41,9 @@ public class NotesController : SingletonBehaviour<NotesController> {
         NoteSize = NotePrefab.GetComponent<MeshFilter>().sharedMesh.bounds.max;
     }
 
-    public void CheckClick()
+    public void DoClick()
     {
+        PlayingSceneManager.Instance.replay.events.Add(new ReplayKeyClickEvent() { time = Conductor.Instance.Position });
         //go through each note of the beatmap
         for (int i = 0; i < Beatmap.CurrentlyLoaded.Notes.Length; i++)
         {
@@ -77,7 +78,7 @@ public class NotesController : SingletonBehaviour<NotesController> {
                 //If space key is pressed, call the click code
                 if (Input.GetKeyDown(KeyCode.Space))
                 {
-                    CheckClick();
+                    DoClick();
                 }
                 //Go through each note in the loaded beatmap
                 for (int i = 0; i < Beatmap.CurrentlyLoaded.Notes.Length; i++)
@@ -111,14 +112,11 @@ public class NotesController : SingletonBehaviour<NotesController> {
         }
         else
         {
-            //Fade out the music
-            StartCoroutine(Helper.FadeOut(Conductor.Instance.Player, 1)); 
-            //Load the results which will be sent to result manager
-            PlayingSceneManager.Instance.InitResults();
-            //load the result scene
-            PlayingSceneManager.GotoResult();
-
-            Destroy(gameObject);
+            PlayingSceneManager.Instance.EndMap();
         }
+    }
+    private void FixedUpdate()
+    {
+        PlayingSceneManager.Instance.replay.events.Add(new ReplayMousePositionEvent() { time = Conductor.Instance.Position, position = Camera.main.ScreenToWorldPoint(Input.mousePosition) });
     }
 }

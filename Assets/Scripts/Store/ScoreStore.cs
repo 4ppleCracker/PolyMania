@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Xml;
@@ -8,7 +10,7 @@ using System.Xml.Serialization;
 static class ScoreStore
 {
     public static Dictionary<string, SortedList<long, Result[]>> Scores = null;
-    public const string FilePath = "score.xml";
+    public const string FilePath = "score.json";
 
     private static void SetScoresOn(string index, Result score)
     {
@@ -37,72 +39,32 @@ static class ScoreStore
 
         Scores = new Dictionary<string, SortedList<long, Result[]>>();
 
-        using (XmlReader reader = XmlReader.Create(FilePath))
-        {
-            reader.MoveToContent();
+        string json = File.ReadAllText(FilePath);
 
-            while (!reader.EOF)
-            {
-                if (reader.Name == "score" && reader.NodeType == XmlNodeType.Element)
-                {
-                    string data = reader.ReadInnerXml();
+        List<Result> results = JsonConvert.DeserializeObject<List<Result>>(json);
 
-                    string decryptedScoreXml = Caesar(data, -41);
-
-                    XmlSerializer serializer = new XmlSerializer(typeof(Result));
-                    using (StringReader textReader = new StringReader(decryptedScoreXml))
-                    {
-                        Result score = (Result)serializer.Deserialize(textReader);
-
-                        SetScoresOn(score.uuid, score);
-                    }
-                }
-                else reader.Read();
-            }
+        foreach (Result result in results) {
+            SetScoresOn(result.uuid, result);
         }
     }
     public static void AddOfflineScore(Result score)
     {
-        XDocument doc = null;
+        JArray obj = null;
         if (!File.Exists(FilePath))
         {
-            doc = new XDocument(new XElement("root"));
+            obj = new JArray();
         }
         else
         {
-            doc = XDocument.Load(FilePath);
+            string json = File.ReadAllText(FilePath);
+            obj = JArray.Parse(json);
         }
 
-        string encryptedScoreXml = Caesar(SerializeToString(score), 41);
-        doc.Root.Add(new XElement("score", encryptedScoreXml));
+        string unencryptedScoreJson = JsonConvert.SerializeObject(score, new JsonSerializerSettings() { ReferenceLoopHandling = ReferenceLoopHandling.Ignore });
+        string encryptedScoreJson = Caesar(unencryptedScoreJson, 41);
+        obj.Add(JObject.Parse(unencryptedScoreJson));
 
-        XmlWriterSettings settings = new XmlWriterSettings
-        {
-            CheckCharacters = false,
-            Indent = true
-        };
-        using (XmlWriter writer = XmlWriter.Create(FilePath, settings))
-        {
-            doc.Save(writer);
-        }
-    }
-
-    public static string SerializeToString<T>(T obj)
-    {
-        var emptyNamespaces = new XmlSerializerNamespaces(new XmlQualifiedName[] { XmlQualifiedName.Empty });
-        var serializer = new XmlSerializer(typeof(T));
-        var settings = new XmlWriterSettings
-        {
-            Indent = true,
-            OmitXmlDeclaration = true
-        };
-
-        using (var stringWriter = new StringWriter())
-        using (var xmlWriter = XmlWriter.Create(stringWriter, settings))
-        {
-            serializer.Serialize(xmlWriter, obj, emptyNamespaces);
-            return stringWriter.ToString();
-        }
+        File.WriteAllText(FilePath, obj.ToString(Newtonsoft.Json.Formatting.Indented));
     }
 
     public static short CeasarKey = 41;

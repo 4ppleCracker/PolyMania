@@ -185,6 +185,20 @@ public class PlayingSceneManager : SingletonBehaviour<PlayingSceneManager> {
         }
     }
 
+    public void EndMap()
+    {
+        //Fade out the music
+        StartCoroutine(Helper.FadeOut(Conductor.Instance.Player, 1));
+        //Load the results which will be sent to result manager
+        InitResults();
+        //load the result scene
+        GotoResult();
+
+        Destroy(NotesController.Instance.gameObject);
+    }
+
+    public Replay replay = new Replay();
+
     private void Update()
     {
         if (Input.GetKeyDown(KeyCode.R))
@@ -212,6 +226,7 @@ public class PlayingSceneManager : SingletonBehaviour<PlayingSceneManager> {
             score = Score,
             uuid = Beatmap.CurrentlyLoaded.GetUUID(),
             date = DateTime.Now,
+            replay = replay,
 
             resultNotes = new ResultNote[Beatmap.CurrentlyLoaded.Notes.Length]
         };
