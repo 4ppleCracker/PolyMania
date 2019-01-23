@@ -6,12 +6,16 @@ public class MainMenuManager : SingletonBehaviour<MainMenuManager> {
     [SerializeField]
     Button PlayButton;
 
+    static bool first = true;
+
 	// Use this for initialization
 	void Start () {
-        if (ScoreStore.Scores != null)
+        if (first)
+        {
             ScoreStore.LoadOffline();
-        if (BeatmapStore.Beatmaps == null)
             BeatmapStore.LoadAll();
+        }
+        first = true;
 
         PlayButton.onClick.AddListener(() =>
         {

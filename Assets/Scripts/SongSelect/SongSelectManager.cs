@@ -118,6 +118,7 @@ class SongSelectManager : SingletonBehaviour<SongSelectManager>
 
     public static void AddItemsToList(int count, GameObject prefab, Func<int, Vector3> getPosition, RectTransform list, Action<GameObject, int> initialize = null)
     {
+        if (count == 0) return;
         for (int i = 0; i < count; i++)
         {
             GameObject songListItem = Instantiate(prefab, list);

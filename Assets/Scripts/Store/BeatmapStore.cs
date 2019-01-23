@@ -22,68 +22,20 @@ public class BeatmapStoreInfo
 
 public static class BeatmapStore
 {
-    public const string DefaultSongPath = "Songs";
+    public static string DefaultSongPath =>
+        Path.Combine(new string[] {
+#if UNITY_ANDROID || UNITY_IOS
+            Application.persistentDataPath,
+#endif
+            "Songs",
+        });
     public static List<BeatmapStoreInfo> Beatmaps;
 
     public static Beatmap DeserializeBeatmap(string fileName)
     {
-        return BeatmapSerializations.GetSerializer(fileName).Invoke();
+        return BeatmapSerializations.GetSerializer(fileName)?.Invoke();
     }
-    public static void SerializeBeatmap(Beatmap map, string fileName)
-    {
-        StringBuilder sb = new StringBuilder();
-        using (StringWriter stream = new StringWriter(sb))
-        using (JsonWriter writer = new JsonTextWriter(stream))
-        {
-            writer.Formatting = Formatting.Indented;
-
-            writer.WriteStartObject();
-            {
-                writer.WritePropertyName("version"); writer.WriteValue("1.1");
-                writer.WriteWhitespace("\n");
-                writer.WriteComment("Metadata");
-                {
-                    writer.WritePropertyName("SongName");          writer.WriteValue(map.SongName);
-                    writer.WritePropertyName("RomanizedSongName"); writer.WriteValue(map.RomanizedSongName);
-                    writer.WritePropertyName("DifficultyName");    writer.WriteValue(map.DifficultyName);
-                    writer.WritePropertyName("Author");            writer.WriteValue(map.Author);
-                    writer.WritePropertyName("Artist");            writer.WriteValue(map.Artist);
-                    writer.WritePropertyName("RomanizedArtist");   writer.WriteValue(map.RomanizedArtist);
-                }
-                writer.WriteWhitespace("\n");
-                writer.WriteComment("Modifierdata");
-                {
-                    writer.WritePropertyName("SpeedMod");   writer.WriteValue(map.SpeedMod);
-                    writer.WritePropertyName("AccMod");     writer.WriteValue(map.AccMod);
-                    writer.WritePropertyName("SliceCount"); writer.WriteValue(map.SliceCount);
-                }
-                writer.WriteWhitespace("\n");
-                writer.WriteComment("Filedata");
-                {
-                    writer.WritePropertyName("SongPath");       writer.WriteValue(map.SongPath);
-                    writer.WritePropertyName("BackgroundPath"); writer.WriteValue(map.BackgroundPath);
-                }
-                writer.WriteWhitespace("\n");
-                writer.WriteComment("Notedata");
-                {
-                    writer.WritePropertyName("Notes");
-                    writer.WriteStartArray();
-                    foreach (Note note in map.Notes)
-                    {
-                        writer.WriteStartObject();
-                        {
-                            writer.WritePropertyName("time");  writer.WriteValue(note.time.Ms);
-                            writer.WritePropertyName("slice"); writer.WriteValue(note.slice);
-                        }
-                        writer.WriteEndObject();
-                    }
-                    writer.WriteEndArray();
-                }
-            }
-            writer.WriteEndObject();
-        }
-        File.WriteAllText(fileName, sb.ToString());
-    }
+    
 
     public static void LoadSong(string songPath)
     {
@@ -115,20 +67,31 @@ public static class BeatmapStore
     }
     public static void AddSong(Beatmap map)
     {
-        string targetDirectory = Path.Combine(DefaultSongPath, map.SanitizedName) + "/";
+        string targetDirectory = GetFolderForMap(map);
         if(!Directory.Exists(targetDirectory))
             Directory.CreateDirectory(targetDirectory);
-        string file = Path.Combine(targetDirectory, Helper.SanitizeString(map.DifficultyName) + ".pmb");
-        SerializeBeatmap(map, file);
+        BeatmapSerializations.SerializeBeatmap(map, GetFileNameForMap(targetDirectory, map));
     }
-    public static void LoadAll(string basePath=DefaultSongPath)
+    public static void LoadAll(string basePath=null)
     {
-        if (!Directory.Exists(basePath)) return;
-        var songPaths = Directory.EnumerateDirectories(basePath);
-        Beatmaps = new List<BeatmapStoreInfo>(songPaths.Count());
-        foreach (string songPath in songPaths)
+        if (basePath == null) basePath = DefaultSongPath;
+        if (!Directory.Exists(basePath))
         {
-            LoadSong(songPath);
+            Debug.Log("Didn't find a songs folder, creating one");
+            Directory.CreateDirectory(basePath);
+        }
+        else
+        {
+            var songPaths = Directory.EnumerateDirectories(basePath);
+            Beatmaps = new List<BeatmapStoreInfo>(songPaths.Count());
+            foreach (string songPath in songPaths)
+            {
+                LoadSong(songPath);
+            }
         }
     }
+    public static string GetFileNameForMap(string targetDirectory, Beatmap map) =>
+        Path.Combine(targetDirectory, Helper.SanitizeString(map.DifficultyName) + ".pmb");
+    public static string GetFolderForMap(Beatmap map) =>
+        Path.Combine(DefaultSongPath, map.SanitizedName) + "/";
 };

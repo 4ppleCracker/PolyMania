@@ -301,10 +301,10 @@ public class Beatmap
         {
             var osuBeatmap = OsuParsers.Parser.ParseBeatmap(osuFilePath);
 
-            if (osuBeatmap.GeneralSection.Mode != OsuParsers.Enums.Ruleset.Mania) throw new System.Exception("Not a mania map");
+            if (osuBeatmap.GeneralSection.Mode != OsuParsers.Enums.Ruleset.Mania) throw new Exception("Not a mania map");
 
             int keyCount = (int)osuBeatmap.DifficultySection.CircleSize;
-            if (keyCount < PolyMesh.MINIMUM_COUNT) throw new System.Exception($"Key count less than {PolyMesh.MINIMUM_COUNT} is not supported");
+            if (keyCount < PolyMesh.MINIMUM_COUNT) throw new Exception($"Key count less than {PolyMesh.MINIMUM_COUNT} is not supported");
 
             Note[] notes = ToPolymaniaNotes(keyCount, osuBeatmap.HitObjects).ToArray();
 
